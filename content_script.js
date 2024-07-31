@@ -4,6 +4,7 @@ const MESSAGES = {
   CODE_ERROR: "Erreur dans le code: ",
   EMPTY_RESPONSE: "La réponse est vide.",
   RESPONSE_RECEIVED: "Réponse : ",
+  WAITING_FOR_QUESTION: "En attente d'une question...",
   GAME_STARTING: "La partie va bientôt commencer",
 };
 
@@ -20,7 +21,9 @@ Pour ce quizz tu dois suivre des règles strictes.
 - Si on te demande des questions sur des titres japonais, essaye de trouver le titrer francais si possible. Sinon réponds romaji.
 `;
 
-const OPENAI_API_KEY = ""
+const OPENAI_API_KEY =
+  "";
+
 var isPartiePerso;
 var QUESTION_XPATH;
 var PARENT_XPATH;
@@ -39,10 +42,15 @@ function getXPath() {
   PARENT_XPATH = isPartiePerso
     ? "/html/body/div[1]/div/div/div[2]/div/div/div[3]/div[2]/div[2]/div/div/div/div[1]/div[1]/div[2]/div[1]"
     : "/html/body/div[1]/div/div/div[2]/div/div/div[2]/div[2]/div[2]/div/div/div/div[1]/div[1]/div[2]/div[1]";
-
   INPUT_XPATH = isPartiePerso
     ? "/html/body/div[1]/div/div/div[2]/div/div/div[3]/div[2]/div[2]/div/div/div/div[1]/div[1]/div[2]/div[5]/input"
     : "/html/body/div[1]/div/div/div[2]/div/div/div[2]/div[2]/div[2]/div/div/div/div[1]/div[1]/div[2]/div[5]/input";
+  APPEND_XPATH = isPartiePerso
+    ? "/html/body/div[1]/div/div/div[2]/div/div/div[3]/div[2]/div[2]/div/div/div/div[1]/div[1]/div[2]/div[2]"
+    : "/html/body/div[1]/div/div/div[2]/div/div/div[2]/div[2]/div[2]/div/div/div/div[1]/div[1]/div[2]/div[2]";
+  ANSWER_XPATH = isPartiePerso
+    ? "/html/body/div[1]/div/div/div[2]/div/div/div[3]/div[2]/div[2]/div/div/div/div[1]/div[1]/div[2]/div[1]/div[2]"
+    : "/html/body/div[1]/div/div/div[2]/div/div/div[2]/div[2]/div[2]/div/div/div/div[1]/div[1]/div[2]/div[1]/div[2]";
 }
 
 function getElementByXpath(path) {
@@ -55,32 +63,35 @@ function getElementByXpath(path) {
   ).singleNodeValue;
 }
 
-var question = getElementByXpath(QUESTION_XPATH);
+var question;
 var observer;
 var parent;
 var divGPT;
-var divAnswerGPT;
-var answerGPT;
+var divTextAnswerGPT;
 
 function createDiv() {
-  parent = getElementByXpath(PARENT_XPATH);
-
+  console.log("Creating the divGPT");
   divGPT = document.createElement("div");
   divGPT.id = "divGPT";
   divGPT.className = "css-1dbjc4n r-1ksg616 r-1dzdj1l r-1pcd2l5";
-  divGPT.addEventListener("contextmenu", (e) => {
-    e.preventDefault();
-  });
-  divAnswerGPT = document.createElement("div");
-  divAnswerGPT.className =
+  divTextAnswerGPT = document.createElement("div");
+  divTextAnswerGPT.className =
     "css-901oao r-jwli3a r-1mkrsdo r-1x35g6 r-10x3wzx r-q4m81j r-lrvibr";
-  divGPT.appendChild(divAnswerGPT);
+  divGPT.appendChild(divTextAnswerGPT);
   divGPT.style.backgroundColor = "rgb(17, 20, 33)";
   divGPT.style.boxShadow = "rgb(32 74 108) 0px 8px 0px";
   divGPT.style.marginTop = "20px";
   divGPT.style.cursor = "pointer";
+  divGPT.style.width= "100%";
+  divGPT.style.marginBottom = "20px";
+  
+  divTextAnswerGPT.innerHTML = MESSAGES.WAITING_FOR_QUESTION;
+  
+  getElementByXpath(APPEND_XPATH).appendChild(divGPT);
+  
 
-  document.body.style.border = "1px solid green";
+  // add onclick event to the two div
+  divGPT.addEventListener("click", insertAnswerGPT);
 }
 
 async function requestGPT() {
@@ -111,65 +122,75 @@ async function requestGPT() {
     });
 
     const data = await response.json();
-    const answer = data.choices[0].message.content.trim();
+    // this regex remove tab, new line etc from the answer but do not remove space
+    const answer = data.choices[0].message.content
+      .trim()
+      .replace(/[^\S ]+/g, "");
     try {
-      responseGPT(answer);
+      if (answer.length > 0) {
+        return MESSAGES.RESPONSE_RECEIVED + answer;
+      } else {
+        return MESSAGES.EMPTY_RESPONSE;
+      }
     } catch (err) {
       console.error(err);
-      divAnswerGPT.innerText = MESSAGES.CODE_ERROR + err;
+      return MESSAGES.CODE_ERROR + err;
     }
   } catch (err) {
     console.error(err);
-    divAnswerGPT.innerText = MESSAGES.CONNECTION_ERROR;
+    return MESSAGES.CONNECTION_ERROR;
   }
 }
 
-function responseGPT(response) {
-  // strip all special characters but keep spaces
-  answerGPT = response.replace(/[^\S ]+/g, "");
-  console.log(MESSAGES.RESPONSE_RECEIVED + answerGPT);
+// Function to create and configure the MutationObserver
+function createObserver(targetElement) {
+  observer = new MutationObserver(handleQuestionChange);
 
-  //add the answer to the input css-11aywtz r-jwli3a r-16y2uox r-1mkrsdo r-1x35g6 r-t66pp7 r-10paoce
-  divAnswerGPT.innerHTML = MESSAGES.RESPONSE_RECEIVED + answerGPT;
-
-  insertAnswerGPT();
+  observer.observe(targetElement, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
+  document.body.style.border = "1px solid green";
 }
 
-function requestApi() {
-  if (!document.querySelector("#divGPT")) parent.appendChild(divGPT);
-  //reset the answer
-  answerGPT = "";
-  divAnswerGPT.innerText = MESSAGES.REQUEST_IN_PROGRESS;
-  requestGPT();
-}
-
-// if div question exist and != MESSAGES.GAME_STARTING start main() else retry until it exist
-function start() {
-  getXPath();
-  question = getElementByXpath(QUESTION_XPATH);
-  console.log("Fetched the question div from the DOM :", question);
+function removeObserver() {
+  observer?.disconnect(); // Stop observing
   document.body.style.border = "1px solid orange";
-  if (question && question.innerText != MESSAGES.GAME_STARTING) {
+}
+
+async function handleQuestionChange() {
+  console.log("A change has been detected by the observer in the parent div");
+  question = getElementByXpath(QUESTION_XPATH);
+  reponse = getElementByXpath(ANSWER_XPATH);
+  if (!reponse && !!question && question.innerText != MESSAGES.GAME_STARTING) {
     console.log(`A question has been detected : "${question.innerText}`);
 
-    createDiv();
-    requestApi();
+    answerGPT = "";
+    divTextAnswerGPT.innerText = MESSAGES.REQUEST_IN_PROGRESS;
 
-    // get everytime the div changes and execute the function "test" (obeserve only "var question" div) config in observer.observe below
-    observer = new MutationObserver(requestApi);
-    observer.observe(question, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    });
-
-    // add onclick event to the two div
-    divGPT.addEventListener("click", insertAnswerGPT);
-
-    divAnswerGPT.innerText = MESSAGES.REQUEST_IN_PROGRESS;
-  } else {
-    setTimeout(start, 1000);
+    result = await requestGPT();
+    divTextAnswerGPT.innerText = result;
   }
+}
+
+// start is handlle by the service worker
+function start() {
+  console.log("Starting the script");
+  document.body.style.border = "1px solid orange";
+  document.body.style.boxSizing = "border-box";
+  getXPath();
+  parent = getElementByXpath(PARENT_XPATH);
+  console.log("Fetched the parent div from the DOM :", question);
+  createObserver(parent);
+  if (!document.querySelector("#divGPT")) createDiv();
+}
+
+function stop() {
+  console.log("Stoping the script");
+  document.body.style.border = "none";
+  removeObserver();
+  if (document.querySelector("#divGPT")) document.querySelector("#divGPT").remove();
 }
 
 function simulateTyping(input, text, delay, pressEnter) {
@@ -194,12 +215,14 @@ function simulateTyping(input, text, delay, pressEnter) {
       input.value += key;
 
       // Create and dispatch the 'input' event
-      const inputEvent = new Event("input", { bubbles: true });
+      const inputEvent = new Event("input", {
+        bubbles: true,
+      });
       input.dispatchEvent(inputEvent);
 
       index++;
       setTimeout(typeCharacter, delay); // Recursively type the next character
-    } else {
+    } else if (pressEnter) {
       const event = new KeyboardEvent("keydown", {
         key: "Enter",
         code: "Enter",
@@ -213,12 +236,12 @@ function simulateTyping(input, text, delay, pressEnter) {
       input.dispatchEvent(event);
     }
   }
-
   typeCharacter();
 }
 
 // insertAnswerGPT
 function insertAnswerGPT(e) {
+  var answerGPT = divTextAnswerGPT.innerText.replace(MESSAGES.RESPONSE_RECEIVED, "").trim();
   if (answerGPT != "") {
     input = getElementByXpath(INPUT_XPATH);
     input.focus();
@@ -228,24 +251,14 @@ function insertAnswerGPT(e) {
   }
 }
 
-document.body.style.border = "1px solid orange";
-document.body.style.boxSizing = "border-box";
-
-chrome.runtime.onMessage.addListener((data) => {
-  console.log("Received message from popup:", data);
-  if (data == "activate") {
-    start();
-  } else if (data == "deactivate") {
-    observer.disconnect();
-    parent.removeChild(divGPT);
-  } else if (data == "status") {
-    console.log("Observer:", observer);
-    chrome.runtime.sendMessage(
-      observer == undefined || observer.takeRecords().length == 0
-        ? "inactive"
-        : "active"
-    );
+chrome.runtime.onMessage.addListener(function (request) {
+  if (request.message === "start") {
+    console.log("Start content script");
+    // Waiting for all the DOM to be ready (especially in custom games)
+    setTimeout(start, 500);
+  }
+  if (request.message === "stop") {
+    console.log("Stop content script");
+    stop();
   }
 });
-
-start();

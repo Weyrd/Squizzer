@@ -1,52 +1,26 @@
-chrome.tabs.query({}, (tabs) => {
-  tabs.forEach((tab) => {
-    chrome.tabs.sendMessage(tab.id, "status");
-  });
-});
+// When openning the popup, get the current status of the extension (enabled or not)
+chrome.runtime.sendMessage({
+  message: "status"
+}, (response) => {
+  if (response.enabled) {
+    document.getElementById("switchText").innerHTML = "Activé";
+    document.getElementById("switch").checked = true;
+  }
+})
 
-document.body.style.border = "1px solid blue";
-
+// When switching the button, send a message to the service worker to update the status of the extension
 document.getElementById("switch").addEventListener("change", function () {
   if (this.checked) {
-    document.getElementById("switchDesc").innerHTML = "Activé";
+    document.getElementById("switchText").innerHTML = "Activé";
 
-    chrome.tabs.query({}, (tabs) => {
-      tabs.forEach((tab) => {
-        chrome.tabs.sendMessage(tab.id, "activate");
-      });
+    chrome.runtime.sendMessage({
+      message: "enable"
     });
-
-    localStorage.setItem("switch", "true");
   } else {
-    document.getElementById("switchDesc").innerHTML = "Désactivé";
+    document.getElementById("switchText").innerHTML = "Désactivé";
 
-    chrome.tabs.query({}, (tabs) => {
-      tabs.forEach((tab) => {
-        chrome.tabs.sendMessage(tab.id, "deactivate");
-      });
+    chrome.runtime.sendMessage({
+      message: "disable",
     });
-
-    localStorage.setItem("switch", "false");
   }
 });
-
-if (localStorage.getItem("switch") == "true") {
-  document.getElementById("switch").checked = true;
-  document.getElementById("switchDesc").innerHTML = "Activé";
-} else {
-  document.getElementById("switch").checked = false;
-  document.getElementById("switchDesc").innerHTML = "Désactivé";
-}
-
-// Listen to message from content script
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  console.log("Message received from content script: " + request);
-  if (request == "start") {
-    // Reset local storage
-    localStorage.setItem("switch", "false");
-    document.getElementById("switch").checked = false;
-    document.getElementById("switchDesc").innerHTML = "Désactivé";
-  }
-});
-
-// Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.
