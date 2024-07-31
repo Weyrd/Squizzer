@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Squizzer",
+  "version": "1.1",
+  "description": "Squizz Helper",
+
+  "icons": {
+    "48": "icons/border-48.svg"
+  },
+
+  "permissions": ["tabs", "notifications"],
+
+  "host_permissions": [
+    "https://squiz.gg/room/*"
+  ],
+
+  "action": {
+    "default_popup": "popup.html"
+  },
+
+  "content_scripts": [{
+    "matches": [
+      "https://squiz.gg/room/*"
+    ],
+    "js": ["pleasehelp.js"]
+  }]
+
+}
