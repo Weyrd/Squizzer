@@ -38,16 +38,16 @@ class BackgroundManager {
       if (this.enabled && this.currentUrl?.includes('room')) {
         Logger.log('🚀 ~ Starting extension');
         this.send({
-            message: 'enabled',
-            value: true
-          });
+          message: 'enabled',
+          value: true,
+        });
       }
-      if (this.enabled && !this.currentUrl?.includes('room')){
+      if (this.enabled && !this.currentUrl?.includes('room')) {
         Logger.log('🏁 ~ Stopping extension');
         this.send({
-            message: 'enabled',
-            value: false
-          });
+          message: 'enabled',
+          value: false,
+        });
       }
     }
   }
@@ -61,14 +61,14 @@ class BackgroundManager {
             Logger.log('🚀 ~ Starting extension');
             this.send({
               message: 'enabled',
-              value: true
+              value: true,
             });
           }
         } else if (request.value === false) {
           Logger.log('🏁 ~ Stopping extension');
           this.send({
             message: 'enabled',
-            value: false
+            value: false,
           });
         }
         break;
@@ -77,7 +77,14 @@ class BackgroundManager {
         Logger.log('🔎 ~ Toggling hint:', request.value);
         this.send({
           message: 'hint',
-          value: request.value
+          value: request.value,
+        });
+        break;
+      case 'autosubmit':
+        Logger.log('🚗 ~ Toggling autosubmit:', request.value);
+        this.send({
+          message: 'autosubmit',
+          value: request.value,
         });
         break;
       case 'status':
@@ -94,8 +101,6 @@ class BackgroundManager {
       chrome.tabs.sendMessage(this.currentTabId, object);
     }
   }
-
-
 }
 
 // Instantiate the BackgroundManager

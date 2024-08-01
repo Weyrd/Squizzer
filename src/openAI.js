@@ -1,20 +1,24 @@
-import {
-  MESSAGES,
-  OPENAI_API_KEY,
-  PROMPT_ANSWER,
-  PROMPT_HINT,
-} from './constants.js';
+import { MESSAGES, OPENAI_API_KEY, PROMPT_ANSWER, PROMPT_HINT, REQUEST_DELAY } from './constants.js';
 
 import Logger from './logger';
 
-export async function requestGPT(current_question, hint) {
-  Logger.log(`🤖 ~ Sending the question to ChatGPT: "${current_question}"\nHint mode: ${hint}`);
+let lastRequestTime = 0;
 
+export async function requestGPT(question, hint) {
   if (OPENAI_API_KEY === '') {
     return MESSAGES.CODE_ERROR + 'No OpenAI API key provided.';
   }
 
+  const currentTime = Date.now();
+  // Check if the time since the last request is less than the REQUEST_DELAY
+  if (currentTime - lastRequestTime < REQUEST_DELAY) {
+    const waitTime = REQUEST_DELAY - (currentTime - lastRequestTime);
+    Logger.log(`⏳ ~ Rate limit in effect. Dropping request. Please wait ${waitTime}ms.`);
+    return MESSAGES.RATE_LIMITED;
+  }
+
   try {
+    Logger.log(`🤖 ~ Sending the question to ChatGPT: "${question}"\nHint mode: ${hint}`);
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -30,7 +34,7 @@ export async function requestGPT(current_question, hint) {
           },
           {
             role: 'user',
-            content: current_question,
+            content: question,
           },
         ],
         temperature: 0,
@@ -40,9 +44,7 @@ export async function requestGPT(current_question, hint) {
 
     const data = await response.json();
     // this regex remove tab, new line etc from the answer but do not remove space
-    const answer = data.choices[0].message.content
-      .trim()
-      .replace(/[^\S ]+/g, '');
+    const answer = data.choices[0].message.content.trim().replace(/[^\S ]+/g, '');
     try {
       if (answer.length > 0) {
         return MESSAGES.RESPONSE_RECEIVED + answer;

@@ -11,6 +11,8 @@ class ScriptManager {
     this.observerGlobal = null;
     this.hint = false;
     this.canCopy = true;
+    this.autosubmit = false;
+    this.timer = 0;
 
     this.registerListeners();
   }
@@ -34,6 +36,10 @@ class ScriptManager {
 
           this.hint = request.value;
           this.canCopy = !request.value;
+          break;
+        case 'autosubmit':
+          Logger.log(`🔎 ~ Autosubmit updated : ${request.value}`);
+          this.autosubmit = request.value;
           break;
       }
     });
@@ -76,6 +82,7 @@ class ScriptManager {
 
   async handleQuestionChange(question) {
     Logger.log(`❓ ~ A question has been detected : "${question}"`);
+    this.timer = Date.now();
 
     const divTextAnswerGPT = document.querySelector('#divTextAnswerGPT');
     divTextAnswerGPT.innerText = MESSAGES.REQUEST_IN_PROGRESS;
@@ -103,6 +110,7 @@ class ScriptManager {
     // else if we are in the answer time (div updated but not a new question)
     else if (response) {
       this.canCopy = false;
+      this.timer = 0;
     }
   }
 
@@ -110,15 +118,18 @@ class ScriptManager {
     //create the game observer when needed
     const question = getXPathElement('QUESTION_XPATH');
     const result = getXPathElement('RESULT_XPATH');
-    Logger.log('🔄🌍 ~ A change has been detected by the global observer in the DOM');
+    Logger.log('🔄🌍 ~ A change has been detected by the global observer in the DOM.');
+    Logger.log(`🔄🌍 ~ Question: ${question?.innerText}`);
+    Logger.log(`🔄🌍 ~ Result: ${result?.innerText}`);
 
-    if (question && result.innerText !== MESSAGES.RESULT_SCREEN && !this.observerGame) {
+    if (question && result?.innerText !== MESSAGES.RESULT_SCREEN && !this.observerGame) { 
       Logger.log('🎮 ~ The game is starting, creating the game observer');
 
       this.createObserverGame(getXPathElement('GAME_XPATH'));
       if (!document.querySelector('#divGPT')) createAnswerDiv();
       document.querySelector('#divGPT').addEventListener('click', () => this.insertAnswerGPT());
-    } else if (result.innerText === MESSAGES.RESULT_SCREEN && this.observerGame) {
+    } else if (!result  && this.observerGame) {
+      // && question?.innerText === MESSAGES.RESULT_SCREEN
       Logger.log('🏁 ~ The game is finished, removing the game observer');
       this.removeObserverGame();
     }
@@ -129,12 +140,10 @@ class ScriptManager {
       .querySelector('#divTextAnswerGPT')
       .innerText.replace(MESSAGES.RESPONSE_RECEIVED, '')
       .trim();
-    if (this.canCopy && answerGPT != '' && !Object.values(MESSAGES).includes(answerGPT)) {
-      let input = getXPathElement('INPUT_XPATH');
+    const input = getXPathElement('INPUT_XPATH');
+    if (input && this.canCopy && answerGPT != '' && !Object.values(MESSAGES).includes(answerGPT)) {
       input?.focus();
-
-      const isRightClick = e?.which == 3 || e?.which == 2;
-      simulateTyping(input, answerGPT, 0, !isRightClick);
+      simulateTyping(input, answerGPT, 0, this.autosubmit);
     }
   }
 
@@ -148,8 +157,8 @@ class ScriptManager {
   }
 
   stop() {
+    this.removeObserverGame();
     this.removeObserverGlobal();
-    this.createObserverGame();
     document.body.style.border = 'none';
     const divGPT = document.querySelector('#divGPT');
     if (divGPT) divGPT.remove();

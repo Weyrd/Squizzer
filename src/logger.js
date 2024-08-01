@@ -2,22 +2,22 @@ const DEBUG = true;
 
 // Define a logging utility
 const Logger = {
-  log(message) {
+  log(...args) {
     if (DEBUG) {
-      console.log(`[DEBUG] ${message}`);
+      console.log(`[DEBUG] ${args.join(' ')}`);
     }
   },
 
-  info(message) {
-    console.info(message);
+  info(...args) {
+    console.info(...args);
   },
 
-  warn(message) {
-    console.warn(message);
+  warn(...args) {
+    console.warn(...args);
   },
 
-  error(message) {
-    console.error(message);
+  error(...args) {
+    console.error(...args);
   },
 };
 
