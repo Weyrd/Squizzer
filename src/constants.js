@@ -1,12 +1,18 @@
 export const MESSAGES = {
+  // GPT
   REQUEST_IN_PROGRESS: 'Requête en cours...',
   CONNECTION_ERROR: 'Erreur de connexion à GPT.',
+  I_DONT_KNOW: 'Je ne connais pas la réponse.',
+  RESPONSE_RECEIVED: 'Réponse: ',
+  
+  // ERROR
   CODE_ERROR: 'Erreur dans le code: ',
   EMPTY_RESPONSE: 'La réponse est vide.',
-  RESPONSE_RECEIVED: 'Réponse: ',
+  
+  // SITE STRING
   WAITING_FOR_QUESTION: "En attente d'une nouvelle question...",
   GAME_STARTING: 'La partie va bientôt commencer',
-  I_DONT_KNOW: 'Je ne connais pas la réponse.',
+  RESULT_SCREEN: "RÉSULTATS"
 };
 
 export const PROMPT_ANSWER = `Tu es un champion de Question Pour un champion, imbattable et incollable dans tous les domaines. 
@@ -18,9 +24,9 @@ Respecte ces règles strictes :
 - Pour titres japonais, donne le titre français ou en romaji.
 - Si tu ne sais pas, dis ${MESSAGES.I_DONT_KNOW}.`;
 
-export const PROMPT_HINT = `Tu es un expert en indices pour Question Pour un champion. Ton rôle est de donner des indices précis et utiles en respectant ces règles :
+export const PROMPT_HINT = `Tu es un expert en indices pour Question Pour un champion. Ton rôle est de donner des indices précis, court et utiles en respectant ces règles :
 - Pas de ponctuation, majuscules, ni accents.
-- Indice en 10 mots max.
+- Indice en 3 mots max.
 - Reste concis et clair, ne dévoile pas la réponse.
 - Si tu ne connais pas la réponse, dis ${MESSAGES.I_DONT_KNOW}.`;
 
@@ -30,4 +36,4 @@ export const PROMPT_HINT = `Tu es un expert en indices pour Question Pour un cha
 */
 
 export const OPENAI_API_KEY =
-  '';
+  'sk-proj-MVIjTmiUqCxHj3UqT2JyT3BlbkFJxO1FZClijGkVv4gzJ8Gf';

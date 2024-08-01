@@ -7,8 +7,8 @@ import {
 
 import Logger from './logger';
 
-export async function requestGPT(current_question) {
-  Logger.log(`Sending the question to ChatGPT: "${current_question}"`);
+export async function requestGPT(current_question, hint) {
+  Logger.log(`🤖 ~ Sending the question to ChatGPT: "${current_question}"\nHint mode: ${hint}`);
 
   if (OPENAI_API_KEY === '') {
     return MESSAGES.CODE_ERROR + 'No OpenAI API key provided.';
@@ -26,7 +26,7 @@ export async function requestGPT(current_question) {
         messages: [
           {
             role: 'system',
-            content: PROMPT_ANSWER,
+            content: hint ? PROMPT_HINT : PROMPT_ANSWER,
           },
           {
             role: 'user',

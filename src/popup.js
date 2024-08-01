@@ -12,22 +12,31 @@ chrome.runtime.sendMessage(
       document.getElementById('enabled-label').innerText = 'Activé';
       document.getElementById('enabled-input').checked = true;
     }
+    if (response.hint) {
+      document.getElementById('hint-input').checked = true;
+    }
   }
 );
 
 // When switching the button, send a message to the service worker to update the status of the extension
-document.getElementById('enabled-input').addEventListener('change', function () {
-  if (this.checked) {
-    document.getElementById('enabled-label').innerText = 'Activé';
+document
+  .getElementById('enabled-input')
+  .addEventListener('change', function () {
+    if (this.checked) {
+      document.getElementById('enabled-label').innerText = 'Activé';
+    } else {
+      document.getElementById('enabled-label').innerText = 'Désactivé';
+    }
 
     chrome.runtime.sendMessage({
-      message: 'enable',
+      message: 'enabled',
+      value: this.checked,
     });
-  } else {
-    document.getElementById('enabled-label').innerText = 'Désactivé';
+  });
 
-    chrome.runtime.sendMessage({
-      message: 'disable',
-    });
-  }
+document.getElementById('hint-input').addEventListener('change', function () {
+  chrome.runtime.sendMessage({
+    message: 'hint',
+    value: this.checked,
+  });
 });

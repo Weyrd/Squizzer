@@ -4,6 +4,7 @@ import Logger from './logger';
 class BackgroundManager {
   constructor() {
     this.enabled = false;
+    this.hint = false;
     this.currentUrl = '';
     this.currentTabId = null;
 
@@ -23,7 +24,7 @@ class BackgroundManager {
 
   handleTabActivated(activeInfo) {
     chrome.tabs.get(activeInfo.tabId, (tab) => {
-      Logger.log('[DEBUG] Current url:', tab.url);
+      Logger.log('🌐 ~ Current url:', tab.url);
       this.currentUrl = tab.url;
       this.currentTabId = tab.id;
     });
@@ -32,44 +33,69 @@ class BackgroundManager {
   handleTabUpdated(tabId, changeInfo) {
     this.currentTabId = tabId;
     if (changeInfo.url?.includes('squiz')) {
-      Logger.log('[DEBUG] URL updated:', changeInfo.url);
+      Logger.log('🔄🌐 ~ URL updated:', changeInfo.url);
       this.currentUrl = changeInfo.url;
-      if (this.enabled && this.currentUrl?.includes('room')) this.sendStart();
-      if (this.enabled && !this.currentUrl?.includes('room')) this.sendStop();
+      if (this.enabled && this.currentUrl?.includes('room')) {
+        Logger.log('🚀 ~ Starting extension');
+        this.send({
+            message: 'enabled',
+            value: true
+          });
+      }
+      if (this.enabled && !this.currentUrl?.includes('room')){
+        Logger.log('🏁 ~ Stopping extension');
+        this.send({
+            message: 'enabled',
+            value: false
+          });
+      }
     }
   }
 
   handleMessage(request, sender, sendResponse) {
-    if (request.message === 'enable') {
-      this.enabled = true;
-      if (this.currentUrl?.includes('room')) this.sendStart();
-    } else if (request.message === 'disable') {
-      this.enabled = false;
-      this.sendStop();
-    } else if (request.message === 'status') {
-      sendResponse({
-        enabled: this.enabled,
-      });
+    switch (request.message) {
+      case 'enabled':
+        this.enabled = request.value;
+        if (request.value === true) {
+          if (this.currentUrl?.includes('room')) {
+            Logger.log('🚀 ~ Starting extension');
+            this.send({
+              message: 'enabled',
+              value: true
+            });
+          }
+        } else if (request.value === false) {
+          Logger.log('🏁 ~ Stopping extension');
+          this.send({
+            message: 'enabled',
+            value: false
+          });
+        }
+        break;
+      case 'hint':
+        this.hint = request.value;
+        Logger.log('🔎 ~ Toggling hint:', request.value);
+        this.send({
+          message: 'hint',
+          value: request.value
+        });
+        break;
+      case 'status':
+        sendResponse({
+          enabled: this.enabled,
+          hint: this.hint,
+        });
+        break;
     }
   }
 
-  sendStart() {
-    Logger.log('[DEBUG] Starting extension');
+  send(object) {
     if (this.currentTabId !== null) {
-      chrome.tabs.sendMessage(this.currentTabId, {
-        message: 'start',
-      });
+      chrome.tabs.sendMessage(this.currentTabId, object);
     }
   }
 
-  sendStop() {
-    Logger.log('[DEBUG] Stopping extension');
-    if (this.currentTabId !== null) {
-      chrome.tabs.sendMessage(this.currentTabId, {
-        message: 'stop',
-      });
-    }
-  }
+
 }
 
 // Instantiate the BackgroundManager
