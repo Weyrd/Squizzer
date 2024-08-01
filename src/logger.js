@@ -4,7 +4,7 @@ const DEBUG = true;
 const Logger = {
   log(message) {
     if (DEBUG) {
-      console.log(message);
+      console.log(`[DEBUG] ${message}`);
     }
   },
 

@@ -9,7 +9,7 @@ export function getXPathElement(xpathKey) {
 
 
 export function createAnswerDiv() {
-  Logger.log('[DEBUG] Creating the divGPT');
+  Logger.log('🛠️ ~ Creating the divGPT');
 
   const divTextAnswerGPT = document.createElement('div');
   divTextAnswerGPT.id = 'divTextAnswerGPT';
@@ -31,13 +31,10 @@ export function createAnswerDiv() {
 
   getXPathElement('APPEND_XPATH').appendChild(divGPT);
 
-  // add onclick event to the two div
-  divGPT.addEventListener('click', insertAnswerGPT);
-
   return divTextAnswerGPT;
 }
 
-function simulateTyping(input, text, delay, pressEnter) {
+export function simulateTyping(input, text, delay, pressEnter) {
   let index = 0;
 
   function typeCharacter() {
@@ -83,17 +80,4 @@ function simulateTyping(input, text, delay, pressEnter) {
   typeCharacter();
 }
 
-// insertAnswerGPT
-function insertAnswerGPT(e) {
-  var answerGPT = document
-    .querySelector('#divTextAnswerGPT')
-    .innerText.replace(MESSAGES.RESPONSE_RECEIVED, '')
-    .trim();
-  if (answerGPT != '' && !Object.values(MESSAGES).includes(answerGPT)) {
-    let input = getXPathElement('INPUT_XPATH');
-    input.focus();
 
-    const isRightClick = e?.which == 3 || e?.which == 2;
-    simulateTyping(input, answerGPT, 0, !isRightClick);
-  }
-}
