@@ -4,16 +4,19 @@ export const MESSAGES = {
   CONNECTION_ERROR: 'Erreur de connexion à GPT.',
   I_DONT_KNOW: 'Je ne connais pas la réponse.',
   RESPONSE_RECEIVED: 'Réponse: ',
-  
+  RATE_LIMITED: 'RATE LIMITED (1req/s)',
+
   // ERROR
   CODE_ERROR: 'Erreur dans le code: ',
   EMPTY_RESPONSE: 'La réponse est vide.',
-  
+
   // SITE STRING
   WAITING_FOR_QUESTION: "En attente d'une nouvelle question...",
   GAME_STARTING: 'La partie va bientôt commencer',
-  RESULT_SCREEN: "RÉSULTATS"
+  RESULT_SCREEN: 'RÉSULTATS',
 };
+
+export const REQUEST_DELAY = 1000; // 1req/s
 
 export const PROMPT_ANSWER = `Tu es un champion de Question Pour un champion, imbattable et incollable dans tous les domaines. 
 Respecte ces règles strictes :
@@ -35,5 +38,4 @@ export const PROMPT_HINT = `Tu es un expert en indices pour Question Pour un cha
 - Si c'est un lieu, donne un détail distinctif ou une région.
 */
 
-export const OPENAI_API_KEY =
-  'sk-proj-MVIjTmiUqCxHj3UqT2JyT3BlbkFJxO1FZClijGkVv4gzJ8Gf';
+export const OPENAI_API_KEY = 'sk-proj-MVIjTmiUqCxHj3UqT2JyT3BlbkFJxO1FZClijGkVv4gzJ8Gf';

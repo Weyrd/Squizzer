@@ -7,14 +7,12 @@ export function getXPathElement(xpathKey) {
   return xpathManager.getElementByXpath(xpaths[xpathKey]);
 }
 
-
 export function createAnswerDiv() {
   Logger.log('🛠️ ~ Creating the divGPT');
 
   const divTextAnswerGPT = document.createElement('div');
   divTextAnswerGPT.id = 'divTextAnswerGPT';
-  divTextAnswerGPT.className =
-    'css-901oao r-jwli3a r-1mkrsdo r-1x35g6 r-10x3wzx r-q4m81j r-lrvibr';
+  divTextAnswerGPT.className = 'css-901oao r-jwli3a r-1mkrsdo r-1x35g6 r-10x3wzx r-q4m81j r-lrvibr';
 
   const divGPT = document.createElement('div');
   divGPT.id = 'divGPT';
@@ -34,7 +32,7 @@ export function createAnswerDiv() {
   return divTextAnswerGPT;
 }
 
-export function simulateTyping(input, text, delay, pressEnter) {
+export function simulateTyping(input, text, delay, autosubmit) {
   let index = 0;
 
   function typeCharacter() {
@@ -50,7 +48,7 @@ export function simulateTyping(input, text, delay, pressEnter) {
       });
 
       // Dispatch keydown event
-      input.dispatchEvent(event);
+      input?.dispatchEvent(event);
 
       // Append the character to the input field
       input.value += key;
@@ -63,7 +61,7 @@ export function simulateTyping(input, text, delay, pressEnter) {
 
       index++;
       setTimeout(typeCharacter, delay); // Recursively type the next character
-    } else if (pressEnter) {
+    } else if (autosubmit) {
       const event = new KeyboardEvent('keydown', {
         key: 'Enter',
         code: 'Enter',
@@ -79,5 +77,3 @@ export function simulateTyping(input, text, delay, pressEnter) {
   }
   typeCharacter();
 }
-
-
