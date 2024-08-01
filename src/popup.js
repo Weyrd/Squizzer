@@ -9,22 +9,22 @@ chrome.runtime.sendMessage(
   },
   (response) => {
     if (response.enabled) {
-      document.getElementById('switchText').innerHTML = 'Activé';
-      document.getElementById('switch').checked = true;
+      document.getElementById('enabled-label').innerText = 'Activé';
+      document.getElementById('enabled-input').checked = true;
     }
   }
 );
 
 // When switching the button, send a message to the service worker to update the status of the extension
-document.getElementById('switch').addEventListener('change', function () {
+document.getElementById('enabled-input').addEventListener('change', function () {
   if (this.checked) {
-    document.getElementById('switchText').innerHTML = 'Activé';
+    document.getElementById('enabled-label').innerText = 'Activé';
 
     chrome.runtime.sendMessage({
       message: 'enable',
     });
   } else {
-    document.getElementById('switchText').innerHTML = 'Désactivé';
+    document.getElementById('enabled-label').innerText = 'Désactivé';
 
     chrome.runtime.sendMessage({
       message: 'disable',
