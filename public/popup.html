@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>My Chrome Extension</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div id="ext">
+      <input type="checkbox" id="switch" /><label for="switch">Toggle</label>
+      <p id="switchText">Désactivé</p>
+    </div>
+    <div>
+      <p>Pour entrer directement la réponse : clique gauche</p>
+      <p>Pour entrer la réponse sans entrer : clique droit</p>
+    </div>
+    <div>
+      <p>
+        Bordure orange : le script est en route mais ne trouve pas la div de la
+        question
+      </p>
+      <p>Bordure vert : le script est prêt à fonctionner</p>
+    </div>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
