@@ -17,6 +17,8 @@ export async function requestGPT(question, hint) {
     return MESSAGES.RATE_LIMITED;
   }
 
+  lastRequestTime = currentTime;
+
   try {
     Logger.log(`🤖 ~ Sending the question to ChatGPT: "${question}"\nHint mode: ${hint}`);
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
