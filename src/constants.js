@@ -39,3 +39,5 @@ export const PROMPT_HINT = `Tu es un expert en indices pour Question Pour un cha
 */
 
 export const OPENAI_API_KEY = 'sk-proj-MVIjTmiUqCxHj3UqT2JyT3BlbkFJxO1FZClijGkVv4gzJ8Gf';
+
+export const MODEL = 'gpt-4o-mini';
