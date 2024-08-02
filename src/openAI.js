@@ -1,4 +1,4 @@
-import { MESSAGES, OPENAI_API_KEY, PROMPT_ANSWER, PROMPT_HINT, REQUEST_DELAY } from './constants.js';
+import { MESSAGES, OPENAI_API_KEY, PROMPT_ANSWER, PROMPT_HINT, REQUEST_DELAY, MODEL } from './constants.js';
 
 import Logger from './logger';
 
@@ -26,7 +26,7 @@ export async function requestGPT(question, hint) {
         Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: MODEL,
         messages: [
           {
             role: 'system',

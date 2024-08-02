@@ -3,7 +3,7 @@
 import Logger from './logger';
 import { MESSAGES } from './constants';
 import { requestGPT } from './openAI';
-import { getXPathElement, createAnswerDiv, simulateTyping } from './domUtils';
+import { getXPathElement, createAnswerDiv, simulateTyping, startTimer } from './domUtils';
 
 class ScriptManager {
   constructor() {
@@ -12,7 +12,6 @@ class ScriptManager {
     this.hint = false;
     this.canCopy = true;
     this.autosubmit = false;
-    this.timer = 0;
 
     this.registerListeners();
   }
@@ -82,8 +81,8 @@ class ScriptManager {
 
   async handleQuestionChange(question) {
     Logger.log(`❓ ~ A question has been detected : "${question}"`);
-    this.timer = Date.now();
-
+    
+    startTimer()
     const divTextAnswerGPT = document.querySelector('#divTextAnswerGPT');
     divTextAnswerGPT.innerText = " ";
     const divMiddleHeaderGpt = document.querySelector('#divMiddleHeaderGpt');
@@ -113,7 +112,6 @@ class ScriptManager {
     // else if we are in the answer time (div updated but not a new question)
     else if (response) {
       this.canCopy = false;
-      this.timer = 0;
     }
   }
 
