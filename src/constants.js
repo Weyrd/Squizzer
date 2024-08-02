@@ -3,7 +3,7 @@ export const MESSAGES = {
   REQUEST_IN_PROGRESS: 'Requête en cours...',
   CONNECTION_ERROR: 'Erreur de connexion à GPT.',
   I_DONT_KNOW: 'Je ne connais pas la réponse.',
-  RESPONSE_RECEIVED: 'Réponse: ',
+  RESPONSE_RECEIVED: 'Réponse',
   RATE_LIMITED: 'RATE LIMITED (1req/s)',
 
   // ERROR

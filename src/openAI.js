@@ -47,7 +47,7 @@ export async function requestGPT(question, hint) {
     const answer = data.choices[0].message.content.trim().replace(/[^\S ]+/g, '');
     try {
       if (answer.length > 0) {
-        return MESSAGES.RESPONSE_RECEIVED + answer;
+        return answer;
       } else {
         return MESSAGES.EMPTY_RESPONSE;
       }
