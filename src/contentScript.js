@@ -85,9 +85,12 @@ class ScriptManager {
     this.timer = Date.now();
 
     const divTextAnswerGPT = document.querySelector('#divTextAnswerGPT');
-    divTextAnswerGPT.innerText = MESSAGES.REQUEST_IN_PROGRESS;
+    divTextAnswerGPT.innerText = " ";
+    const divMiddleHeaderGpt = document.querySelector('#divMiddleHeaderGpt');
+    divMiddleHeaderGpt.innerText = MESSAGES.REQUEST_IN_PROGRESS;
 
     const result = await requestGPT(question, this.hint);
+    divMiddleHeaderGpt.innerText = MESSAGES.RESPONSE_RECEIVED;
     divTextAnswerGPT.innerText = result;
 
     // Hint mode = cant copy
@@ -122,13 +125,13 @@ class ScriptManager {
     Logger.log(`🔄🌍 ~ Question: ${question?.innerText}`);
     Logger.log(`🔄🌍 ~ Result: ${result?.innerText}`);
 
-    if (question && result?.innerText !== MESSAGES.RESULT_SCREEN && !this.observerGame) { 
+    if (question && result?.innerText !== MESSAGES.RESULT_SCREEN && !this.observerGame) {
       Logger.log('🎮 ~ The game is starting, creating the game observer');
 
       this.createObserverGame(getXPathElement('GAME_XPATH'));
       if (!document.querySelector('#divGPT')) createAnswerDiv();
       document.querySelector('#divGPT').addEventListener('click', () => this.insertAnswerGPT());
-    } else if (!result  && this.observerGame) {
+    } else if (!result && this.observerGame) {
       // && question?.innerText === MESSAGES.RESULT_SCREEN
       Logger.log('🏁 ~ The game is finished, removing the game observer');
       this.removeObserverGame();
@@ -136,10 +139,7 @@ class ScriptManager {
   }
 
   insertAnswerGPT(e) {
-    var answerGPT = document
-      .querySelector('#divTextAnswerGPT')
-      .innerText.replace(MESSAGES.RESPONSE_RECEIVED, '')
-      .trim();
+    var answerGPT = document.querySelector('#divTextAnswerGPT').innerText.trim();
     const input = getXPathElement('INPUT_XPATH');
     if (input && this.canCopy && answerGPT != '' && !Object.values(MESSAGES).includes(answerGPT)) {
       input?.focus();
