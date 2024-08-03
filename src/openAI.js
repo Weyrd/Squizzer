@@ -1,4 +1,5 @@
-import { MESSAGES, OPENAI_API_KEY, PROMPT_ANSWER, PROMPT_HINT, REQUEST_DELAY, MODEL } from './constants.js';
+import { MESSAGES, PROMPT_ANSWER, PROMPT_HINT, REQUEST_DELAY, MODEL } from './constants.js';
+import { OPENAI_API_KEY } from './secrets.js';
 
 import Logger from './logger';
 

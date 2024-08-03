@@ -89,7 +89,7 @@ class ScriptManager {
     divMiddleHeaderGpt.innerText = MESSAGES.REQUEST_IN_PROGRESS;
 
     const result = await requestGPT(question, this.hint);
-    divMiddleHeaderGpt.innerText = MESSAGES.RESPONSE_RECEIVED;
+    divMiddleHeaderGpt.innerText = this.hint? MESSAGES.HINT_RECEIVED : MESSAGES.RESPONSE_RECEIVED;
     divTextAnswerGPT.innerText = result;
 
     // Hint mode = cant copy
