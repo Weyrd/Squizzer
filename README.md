@@ -2,6 +2,12 @@
 
 My Chrome Extension
 
+# Set up
+- create `secrets.js` in the `src` folder :
+```js
+export const OPENAI_API_KEY = 'your_openai_api_key';
+``` 
+
 ## Features
 
 - Feature 1
