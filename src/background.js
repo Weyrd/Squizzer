@@ -5,6 +5,7 @@ class BackgroundManager {
   constructor() {
     this.enabled = false;
     this.hint = false;
+    this.autosubmit = false;
     this.currentUrl = '';
     this.currentTabId = null;
 
@@ -81,6 +82,7 @@ class BackgroundManager {
         });
         break;
       case 'autosubmit':
+        this.autosubmit = request.value;
         Logger.log('🚗 ~ Toggling autosubmit:', request.value);
         this.send({
           message: 'autosubmit',
@@ -91,6 +93,7 @@ class BackgroundManager {
         sendResponse({
           enabled: this.enabled,
           hint: this.hint,
+          autosubmit: this.autosubmit,
         });
         break;
     }

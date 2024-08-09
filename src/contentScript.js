@@ -5,6 +5,39 @@ import { MESSAGES } from './constants';
 import { requestGPT } from './openAI';
 import { getXPathElement, createAnswerDiv, simulateTyping, startTimer } from './domUtils';
 
+const observerConditions = {
+  // New question div
+  isNewGame: (records) =>
+    records.some(
+      (record) =>
+        record.type === 'childList' &&
+        record.target.className === 'css-1dbjc4n r-16y2uox' &&
+        record.addedNodes.length === 1 &&
+        record.addedNodes[0].className.includes('css-1dbjc4n') &&
+        record.addedNodes[0].className.includes('r-1dzdj1l') &&
+        record.addedNodes[0].className.includes('r-1pcd2l5')
+    ),
+  // Same question div, different question
+  isNewQuestion: (records) =>
+    records.some(
+      (record) =>
+        record.type === 'characterData' &&
+        record.target.parentNode.className.includes('css-901oao') &&
+        record.target.parentNode.className.includes('r-jwli3a') &&
+        record.target.parentNode.className.includes('r-1mkrsdo') &&
+        record.target.parentNode.className.includes('r-1x35g6')
+    ),
+  // New answer div
+  isNewAnswer: (records) =>
+    records.some(
+      (record) =>
+        record.type === 'childList' &&
+        record.target.className === 'css-1dbjc4n r-16y2uox' &&
+        record.addedNodes.length === 1 &&
+        record.addedNodes[0].className === 'css-1dbjc4n'
+    ),
+};
+
 class ScriptManager {
   constructor() {
     this.observerGame = null;
@@ -32,7 +65,6 @@ class ScriptManager {
           break;
         case 'hint':
           Logger.log(`🔎 ~ Hint updated : ${request.value}`);
-
           this.hint = request.value;
           this.canCopy = !request.value;
           break;
@@ -44,34 +76,18 @@ class ScriptManager {
     });
   }
 
-  createObserverGlobal(targetElement) {
-    this.observerGlobal = new MutationObserver(this.handleDOMChangeGlobal.bind(this));
+  createObserver(targetElement) {
+    this.observerGlobal = new MutationObserver(this.handleDOMChange.bind(this));
     this.observerGlobal.observe(targetElement, {
       childList: true,
       subtree: true,
       characterData: true,
     });
     document.body.style.border = '1px solid purple';
-  }
-  createObserverGame(targetElement) {
-    this.observerGame = new MutationObserver(this.handleDOMChangeGame.bind(this));
-    this.observerGame.observe(targetElement, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    });
-    document.body.style.border = '1px solid green';
+    Logger.log('👀 ~ Observer created.');
   }
 
-  removeObserverGame() {
-    if (this.observerGame) {
-      this.observerGame.disconnect();
-      this.observerGame = null;
-      document.body.style.border = '1px solid orange';
-    }
-  }
-
-  removeObserverGlobal() {
+  removeObserver() {
     if (this.observerGlobal) {
       this.observerGlobal.disconnect();
       this.observerGlobal = null;
@@ -79,64 +95,62 @@ class ScriptManager {
     }
   }
 
-  async handleQuestionChange(question) {
+  async handleQuestionChange() {
+    const question = getXPathElement('QUESTION_XPATH').innerText;
     Logger.log(`❓ ~ A question has been detected : "${question}"`);
-    
-    startTimer()
+
+    startTimer();
     const divTextAnswerGPT = document.querySelector('#divTextAnswerGPT');
-    divTextAnswerGPT.innerText = " ";
+    divTextAnswerGPT.innerText = ' ';
     const divMiddleHeaderGpt = document.querySelector('#divMiddleHeaderGpt');
     divMiddleHeaderGpt.innerText = MESSAGES.REQUEST_IN_PROGRESS;
 
     const result = await requestGPT(question, this.hint);
-    divMiddleHeaderGpt.innerText = this.hint? MESSAGES.HINT_RECEIVED : MESSAGES.RESPONSE_RECEIVED;
+    divMiddleHeaderGpt.innerText = this.hint ? MESSAGES.HINT_RECEIVED : MESSAGES.RESPONSE_RECEIVED;
     divTextAnswerGPT.innerText = result;
 
     // Hint mode = cant copy
     this.canCopy = !this.hint;
   }
 
-  handleDOMChangeGame() {
-    Logger.log('🔄 ~ A change has been detected by the observer in the DOM near the question');
+  handleDOMChange(records) {
+    // If the DOM change is not related to a question, we return
+    if (!records.some((record) => record.target?.innerText?.includes('Question'))) return;
 
-    const question = getXPathElement('QUESTION_XPATH');
+    // Show the records if you want to understand the DOM changes
+    //console.log(records);
 
-    const response = getXPathElement('ANSWER_XPATH');
+    if (observerConditions.isNewGame(records)) {
+      Logger.log('🔄❓ ~ Question detected (new game).');
 
-    // pas de div reponse + div question + pas de la game n'a pas encore start
-    const isQuestion = !response && question && question.innerText !== MESSAGES.GAME_STARTING;
-
-    if (isQuestion) {
-      this.handleQuestionChange(question.innerText);
+      if (!document.querySelector('#divGPT')) {
+        createAnswerDiv();
+        document.querySelector('#divGPT').addEventListener('click', () => this.insertAnswerGPT());
+      }
+      this.handleQuestionChange();
+      return;
     }
-    // else if we are in the answer time (div updated but not a new question)
-    else if (response) {
+
+    if (observerConditions.isNewQuestion(records)) {
+      Logger.log('🔄❓ ~ Question detected (same game).');
+
+      if (!document.querySelector('#divGPT')) {
+        createAnswerDiv();
+        document.querySelector('#divGPT').addEventListener('click', () => this.insertAnswerGPT());
+      }
+      this.handleQuestionChange();
+      return;
+    }
+
+    if (observerConditions.isNewAnswer(records)) {
+      Logger.log('🔄📝 ~ Answer detected.');
+
       this.canCopy = false;
+      return;
     }
   }
 
-  handleDOMChangeGlobal() {
-    //create the game observer when needed
-    const question = getXPathElement('QUESTION_XPATH');
-    const result = getXPathElement('RESULT_XPATH');
-    Logger.log('🔄🌍 ~ A change has been detected by the global observer in the DOM.');
-    Logger.log(`🔄🌍 ~ Question: ${question?.innerText}`);
-    Logger.log(`🔄🌍 ~ Result: ${result?.innerText}`);
-
-    if (question && result?.innerText !== MESSAGES.RESULT_SCREEN && !this.observerGame) {
-      Logger.log('🎮 ~ The game is starting, creating the game observer');
-
-      this.createObserverGame(getXPathElement('GAME_XPATH'));
-      if (!document.querySelector('#divGPT')) createAnswerDiv();
-      document.querySelector('#divGPT').addEventListener('click', () => this.insertAnswerGPT());
-    } else if (!result && this.observerGame) {
-      // && question?.innerText === MESSAGES.RESULT_SCREEN
-      Logger.log('🏁 ~ The game is finished, removing the game observer');
-      this.removeObserverGame();
-    }
-  }
-
-  insertAnswerGPT(e) {
+  insertAnswerGPT() {
     var answerGPT = document.querySelector('#divTextAnswerGPT').innerText.trim();
     const input = getXPathElement('INPUT_XPATH');
     if (input && this.canCopy && answerGPT != '' && !Object.values(MESSAGES).includes(answerGPT)) {
@@ -146,18 +160,16 @@ class ScriptManager {
   }
 
   start() {
-    document.body.style.border = '1px solid orange';
     document.body.style.boxSizing = 'border-box';
+    document.body.style.border = '1px solid orange';
 
     const globalDiv = getXPathElement('GLOBAL_XPATH');
-    Logger.log('📦 ~ Fetched the Global div from the DOM :', globalDiv);
-    this.createObserverGlobal(globalDiv);
+    this.createObserver(globalDiv);
   }
 
   stop() {
-    this.removeObserverGame();
-    this.removeObserverGlobal();
     document.body.style.border = 'none';
+    this.removeObserver();
     const divGPT = document.querySelector('#divGPT');
     if (divGPT) divGPT.remove();
   }

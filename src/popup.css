@@ -15,24 +15,11 @@ html {
 }
 
 body {
-  width: 350px;
+  width: 275px;
 }
 
 #container {
-  padding: 1rem;
-}
-
-#help {
-  font-size: .75rem;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin: .5rem;
-  padding: .5rem .75rem;
-  background-color: #22222250;
-  border-radius: .5rem;
-  color: #eaebf1;
+  padding: 2rem;
 }
 
 #options {
