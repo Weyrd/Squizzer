@@ -4,7 +4,8 @@ const DEBUG = true;
 const Logger = {
   log(...args) {
     if (DEBUG) {
-      console.log(`[DEBUG] ${args.join(' ')}`);
+      const time = new Date().toLocaleTimeString().split(' ')[0];
+      console.log(`[DEBUG - ${time}] ${args.join(' ')}`);
     }
   },
 

@@ -15,6 +15,9 @@ chrome.runtime.sendMessage(
     if (response.hint) {
       document.getElementById('hint-input').checked = true;
     }
+    if (response.autosubmit) {
+      document.getElementById('autosubmit-input').checked = true;
+    }
   }
 );
 
