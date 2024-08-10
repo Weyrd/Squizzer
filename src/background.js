@@ -5,7 +5,9 @@ class BackgroundManager {
   constructor() {
     this.enabled = false;
     this.hint = false;
+    this.autoinsertanswer = false;
     this.autosubmit = false;
+    this.autosubmitdelay = 0;
     this.currentUrl = '';
     this.currentTabId = null;
 
@@ -81,6 +83,14 @@ class BackgroundManager {
           value: request.value,
         });
         break;
+      case 'autoinsertanswer':
+        this.autoinsertanswer = request.value;
+        Logger.log('📝 ~ Toggling autoinsertanswer:', request.value);
+        this.send({
+          message: 'autoinsertanswer',
+          value: request.value,
+        });
+        break;
       case 'autosubmit':
         this.autosubmit = request.value;
         Logger.log('🚗 ~ Toggling autosubmit:', request.value);
@@ -89,11 +99,29 @@ class BackgroundManager {
           value: request.value,
         });
         break;
+      case 'autosubmitdelay':
+        this.autosubmitdelay = request.value;
+        Logger.log('🕒 ~ Changing autosubmit delay:', request.value);
+        this.send({
+          message: 'autosubmitdelay',
+          value: request.value,
+        });
       case 'status':
         sendResponse({
           enabled: this.enabled,
           hint: this.hint,
+          autoinsertanswer: this.autoinsertanswer,
           autosubmit: this.autosubmit,
+          autosubmitdelay: this.autosubmitdelay,
+        });
+        break;
+      case 'getOptions':
+        sendResponse({
+          enabled: this.enabled && this.currentUrl?.includes('room'),
+          hint: this.hint,
+          autoinsertanswer: this.autoinsertanswer,
+          autosubmit: this.autosubmit,
+          autosubmitdelay: this.autosubmitdelay,
         });
         break;
     }

@@ -14,14 +14,14 @@ export async function requestGPT(question, hint) {
   // Check if the time since the last request is less than the REQUEST_DELAY
   if (currentTime - lastRequestTime < REQUEST_DELAY) {
     const waitTime = REQUEST_DELAY - (currentTime - lastRequestTime);
-    Logger.log(`⏳ ~ Rate limit in effect. Dropping request. Please wait ${waitTime}ms.`);
+    Logger.log(`⏳ ~ Rate limit in effect. Dropping request. Please wait ${waitTime}ms`);
     return MESSAGES.RATE_LIMITED;
   }
 
   lastRequestTime = currentTime;
 
   try {
-    Logger.log(`🤖 ~ Sending the question to ChatGPT: "${question}"\nHint mode: ${hint}`);
+    Logger.log(`🤖⬆️ ~ Sending the question to OpenAI: "${question}"\nHint mode: ${hint}`);
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -50,6 +50,7 @@ export async function requestGPT(question, hint) {
     const answer = data.choices[0].message.content.trim().replace(/[^\S ]+/g, '');
     try {
       if (answer.length > 0) {
+        Logger.log(`🤖⬇️ ~ OpenAI response: "${answer}"`);
         return answer;
       } else {
         return MESSAGES.EMPTY_RESPONSE;

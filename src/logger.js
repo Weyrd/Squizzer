@@ -5,7 +5,7 @@ const Logger = {
   log(...args) {
     if (DEBUG) {
       const time = new Date().toLocaleTimeString().split(' ')[0];
-      console.log(`[DEBUG - ${time}] ${args.join(' ')}`);
+      console.log(`[${time} - DEBUG]`, ...args);
     }
   },
 

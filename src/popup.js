@@ -12,12 +12,12 @@ chrome.runtime.sendMessage(
       document.getElementById('enabled-label').innerText = 'Activé';
       document.getElementById('enabled-input').checked = true;
     }
-    if (response.hint) {
-      document.getElementById('hint-input').checked = true;
-    }
-    if (response.autosubmit) {
-      document.getElementById('autosubmit-input').checked = true;
-    }
+
+    document.getElementById('hint-input').checked = response.hint;
+    document.getElementById('autoinsertanswer-input').checked = response.autoinsertanswer;
+    document.getElementById('autosubmit-input').checked = response.autosubmit;
+    document.getElementById('autosubmitdelay-input').value = response.autosubmitdelay;
+    document.getElementById('autosubmitdelay-value').innerText = response.autosubmitdelay;
   }
 );
 
@@ -42,9 +42,29 @@ document.getElementById('hint-input').addEventListener('change', function () {
   });
 });
 
+document.getElementById('autoinsertanswer-input').addEventListener('click', function () {
+  chrome.runtime.sendMessage({
+    message: 'autoinsertanswer',
+    value: this.checked,
+  });
+});
+
 document.getElementById('autosubmit-input').addEventListener('change', function () {
   chrome.runtime.sendMessage({
     message: 'autosubmit',
     value: this.checked,
+  });
+});
+
+// Update the displayed value as the user drags the slider
+document.getElementById('autosubmitdelay-input').addEventListener('input', function () {
+  document.getElementById('autosubmitdelay-value').innerText = this.value;
+});
+
+// When the user releases the slider, send a message to the service worker to update the delay
+document.getElementById('autosubmitdelay-input').addEventListener('change', function () {
+  chrome.runtime.sendMessage({
+    message: 'autosubmitdelay',
+    value: this.value,
   });
 });

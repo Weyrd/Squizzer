@@ -45,6 +45,14 @@ label {
   text-align: left;
 }
 
+.range {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  margin: .5rem 0;
+  gap: .25rem;
+}
+
 /* Switch CSS */
 .switch {
   /* switch */

@@ -8,8 +8,6 @@ export function getXPathElement(xpathKey) {
 }
 
 export function createAnswerDiv() {
-  Logger.log('🛠️ ~ Creating the divGPT');
-
   const divHeaderGpt = document.createElement('div');
   divHeaderGpt.className = 'css-1dbjc4n r-18u37iz';
 
@@ -58,6 +56,8 @@ export function createAnswerDiv() {
 
   getXPathElement('APPEND_XPATH').appendChild(divGPT);
 
+  Logger.log('🛠️📄 ~ Squizzer DOM element created');
+
   return divTextAnswerGPT;
 }
 
@@ -76,7 +76,7 @@ export function startTimer() {
   }
 }
 
-export function simulateTyping(input, text, delay, autosubmit) {
+export function simulateTyping(input, text, delay, autosubmit, startTime, autosubmitdelay) {
   let index = 0;
 
   function typeCharacter() {
@@ -106,17 +106,20 @@ export function simulateTyping(input, text, delay, autosubmit) {
       index++;
       setTimeout(typeCharacter, delay); // Recursively type the next character
     } else if (autosubmit) {
-      const event = new KeyboardEvent('keydown', {
-        key: 'Enter',
-        code: 'Enter',
-        keyCode: 13,
-        which: 13,
-        bubbles: true,
-        cancelable: true,
-      });
+      const remainingTime = autosubmitdelay * 1000 - (Date.now() - startTime) - 46;
+      setTimeout(() => {
+        const event = new KeyboardEvent('keydown', {
+          key: 'Enter',
+          code: 'Enter',
+          keyCode: 13,
+          which: 13,
+          bubbles: true,
+          cancelable: true,
+        });
 
-      // Dispatch keydown event
-      input.dispatchEvent(event);
+        // Dispatch keydown event
+        input.dispatchEvent(event);
+      }, remainingTime);
     }
   }
   typeCharacter();

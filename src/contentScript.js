@@ -44,9 +44,28 @@ class ScriptManager {
     this.observerGlobal = null;
     this.hint = false;
     this.canCopy = true;
+    this.autoinsertanswer = false;
     this.autosubmit = false;
+    this.autosubmitdelay = 0;
+    this.startTime = null;
 
     this.registerListeners();
+
+    // Send message to background script to get the state of the extension
+    chrome.runtime.sendMessage({ message: 'getOptions' }, (response) => {
+      if (response) {
+        Logger.log('📡 ~ Received status from background script:', response);
+        this.hint = response.hint;
+        this.autoinsertanswer = response.autoinsertanswer;
+        this.autosubmit = response.autosubmit;
+        this.autosubmitdelay = response.autosubmitdelay;
+      }
+
+      if (response.enabled) {
+        Logger.log('🟢 ~ Extension enabled');
+        setTimeout(() => this.start(), 500);
+      }
+    });
   }
 
   registerListeners() {
@@ -55,22 +74,31 @@ class ScriptManager {
       switch (request.message) {
         case 'enabled':
           if (request.value) {
-            Logger.log('🚀 ~ Extension activée');
+            Logger.log('🟢 ~ Extension enabled');
             // settimeout pour attendre que la DOM se charge (surtout en custom game)
             setTimeout(() => this.start(), 500);
           } else {
-            Logger.log('🏁 ~ Extension desactivée');
+            Logger.log('🔴 ~ Extension disabled');
             this.stop();
+            setTimeout(() => this.stop(), 500);
           }
           break;
         case 'hint':
-          Logger.log(`🔎 ~ Hint updated : ${request.value}`);
+          Logger.log(`🔎 ~ Toggling hint: ${request.value}`);
           this.hint = request.value;
           this.canCopy = !request.value;
           break;
+        case 'autoinsertanswer':
+          Logger.log(`📝 ~ Toggling autoinsertanswer: ${request.value}`);
+          this.autoinsertanswer = request.value;
+          break;
         case 'autosubmit':
-          Logger.log(`🔎 ~ Autosubmit updated : ${request.value}`);
+          Logger.log(`🚗 ~ Toggling autosubmit: ${request.value}`);
           this.autosubmit = request.value;
+          break;
+        case 'autosubmitdelay':
+          Logger.log(`⏱ ~ Changing autosubmit delay: ${request.value}`);
+          this.autosubmitdelay = request.value;
           break;
       }
     });
@@ -83,8 +111,8 @@ class ScriptManager {
       subtree: true,
       characterData: true,
     });
-    document.body.style.border = '1px solid purple';
-    Logger.log('👀 ~ Observer created.');
+    document.body.style.border = '1px solid green';
+    Logger.log('➕👀 ~ Observer created');
   }
 
   removeObserver() {
@@ -92,13 +120,14 @@ class ScriptManager {
       this.observerGlobal.disconnect();
       this.observerGlobal = null;
       document.body.style.border = '1px solid orange';
+      Logger.log('➖👀 ~ Observer removed');
     }
   }
 
   async handleQuestionChange() {
     const question = getXPathElement('QUESTION_XPATH').innerText;
-    Logger.log(`❓ ~ A question has been detected : "${question}"`);
 
+    this.startTime = Date.now();
     startTimer();
     const divTextAnswerGPT = document.querySelector('#divTextAnswerGPT');
     divTextAnswerGPT.innerText = ' ';
@@ -111,6 +140,10 @@ class ScriptManager {
 
     // Hint mode = cant copy
     this.canCopy = !this.hint;
+
+    if (this.autoinsertanswer) {
+      this.insertAnswerGPT();
+    }
   }
 
   handleDOMChange(records) {
@@ -121,7 +154,7 @@ class ScriptManager {
     //console.log(records);
 
     if (observerConditions.isNewGame(records)) {
-      Logger.log('🔄❓ ~ Question detected (new game).');
+      Logger.log('👀❓ ~ Question change detected (new game)');
 
       if (!document.querySelector('#divGPT')) {
         createAnswerDiv();
@@ -132,7 +165,7 @@ class ScriptManager {
     }
 
     if (observerConditions.isNewQuestion(records)) {
-      Logger.log('🔄❓ ~ Question detected (same game).');
+      Logger.log('👀❓ ~ Question change detected (same game)');
 
       if (!document.querySelector('#divGPT')) {
         createAnswerDiv();
@@ -143,7 +176,7 @@ class ScriptManager {
     }
 
     if (observerConditions.isNewAnswer(records)) {
-      Logger.log('🔄📝 ~ Answer detected.');
+      Logger.log('👀📝 ~ Answer change detected');
 
       this.canCopy = false;
       return;
@@ -155,7 +188,7 @@ class ScriptManager {
     const input = getXPathElement('INPUT_XPATH');
     if (input && this.canCopy && answerGPT != '' && !Object.values(MESSAGES).includes(answerGPT)) {
       input?.focus();
-      simulateTyping(input, answerGPT, 0, this.autosubmit);
+      simulateTyping(input, answerGPT, 0, this.autosubmit, this.startTime, this.autosubmitdelay);
     }
   }
 
@@ -175,4 +208,4 @@ class ScriptManager {
   }
 }
 
-const scriptManager = new ScriptManager();
+new ScriptManager();
