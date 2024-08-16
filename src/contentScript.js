@@ -3,7 +3,7 @@
 import Logger from './logger';
 import { MESSAGES } from './constants';
 import { requestGPT } from './openAI';
-import { getXPathElement, createAnswerDiv, simulateTyping, startTimer } from './domUtils';
+import { getXPathElement, createAnswerDiv, simulateTyping, startTimer, hideRefresh, showRefresh } from './domUtils';
 
 const observerConditions = {
   // New question div
@@ -137,6 +137,28 @@ class ScriptManager {
     const result = await requestGPT(question, this.hint);
     divMiddleHeaderGpt.innerText = this.hint ? MESSAGES.HINT_RECEIVED : MESSAGES.RESPONSE_RECEIVED;
     divTextAnswerGPT.innerText = result;
+    showRefresh();
+
+    // Hint mode = cant copy
+    this.canCopy = !this.hint;
+
+    if (this.autoinsertanswer) {
+      this.insertAnswerGPT();
+    }
+  }
+
+  async handleRefresh() {
+    const question = getXPathElement('QUESTION_XPATH').innerText;
+    const divTextAnswerGPT = document.querySelector('#divTextAnswerGPT');
+    const previousAnswer = divTextAnswerGPT.innerText.trim();
+    divTextAnswerGPT.innerText = ' ';
+    const divMiddleHeaderGpt = document.querySelector('#divMiddleHeaderGpt');
+    divMiddleHeaderGpt.innerText = MESSAGES.REQUEST_IN_PROGRESS;
+
+    const result = await requestGPT(question, this.hint, previousAnswer);
+    divMiddleHeaderGpt.innerText = this.hint ? MESSAGES.HINT_RECEIVED : MESSAGES.RESPONSE_RECEIVED;
+    divTextAnswerGPT.innerText = result;
+    showRefresh();
 
     // Hint mode = cant copy
     this.canCopy = !this.hint;
@@ -158,7 +180,8 @@ class ScriptManager {
 
       if (!document.querySelector('#divGPT')) {
         createAnswerDiv();
-        document.querySelector('#divGPT').addEventListener('click', () => this.insertAnswerGPT());
+        document.querySelector('#divTextAnswerGPT').addEventListener('click', () => this.insertAnswerGPT());
+        document.querySelector('#divFooterLeftGpt').addEventListener('click', () => this.handleRefresh());
       }
       this.handleQuestionChange();
       return;
@@ -169,7 +192,8 @@ class ScriptManager {
 
       if (!document.querySelector('#divGPT')) {
         createAnswerDiv();
-        document.querySelector('#divGPT').addEventListener('click', () => this.insertAnswerGPT());
+        document.querySelector('#divTextAnswerGPT').addEventListener('click', () => this.insertAnswerGPT());
+        document.querySelector('#divFooterLeftGpt').addEventListener('click', () => this.handleRefresh());
       }
       this.handleQuestionChange();
       return;
@@ -179,6 +203,8 @@ class ScriptManager {
       Logger.log('👀📝 ~ Answer change detected');
 
       this.canCopy = false;
+
+      hideRefresh();
       return;
     }
   }

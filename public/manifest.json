@@ -23,5 +23,11 @@
       "matches": ["https://squiz.gg/*"],
       "js": ["contentScript.js"]
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["refresh.svg"],
+      "matches": ["https://squiz.gg/*"]
+    }
   ]
 }
