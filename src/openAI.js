@@ -5,7 +5,7 @@ import Logger from './logger';
 
 let lastRequestTime = 0;
 
-export async function requestGPT(question, hint, previousAnswer = undefined) {
+export async function requestGPT(question, hint, previousAnswers = []) {
   if (OPENAI_API_KEY === '') {
     return MESSAGES.CODE_ERROR + 'No OpenAI API key provided.';
   }
@@ -39,11 +39,21 @@ export async function requestGPT(question, hint, previousAnswer = undefined) {
             role: 'user',
             content: question,
           },
-          ...(previousAnswer
+          ...(previousAnswers.length === 1
             ? [
                 {
                   role: 'system',
-                  content: `La réponse "${previousAnswer}" n'est pas valide, donne une autre réponse.`,
+                  content: `La réponse "${previousAnswers[0]}" n'est pas valide, donne une autre réponse.`,
+                },
+              ]
+            : []),
+          ...(previousAnswers.length > 1
+            ? [
+                {
+                  role: 'system',
+                  content: `Les réponses "${previousAnswers.join(
+                    '", "'
+                  )}" ne sont pas valides, donne une autre réponse.`,
                 },
               ]
             : []),

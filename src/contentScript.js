@@ -48,6 +48,7 @@ class ScriptManager {
     this.autosubmit = false;
     this.autosubmitdelay = 0;
     this.startTime = null;
+    this.previousAnswers = [];
 
     this.registerListeners();
 
@@ -137,6 +138,7 @@ class ScriptManager {
     const result = await requestGPT(question, this.hint);
     divMiddleHeaderGpt.innerText = this.hint ? MESSAGES.HINT_RECEIVED : MESSAGES.RESPONSE_RECEIVED;
     divTextAnswerGPT.innerText = result;
+    this.previousAnswers = [result];
     showRefresh();
 
     // Hint mode = cant copy
@@ -150,14 +152,14 @@ class ScriptManager {
   async handleRefresh() {
     const question = getXPathElement('QUESTION_XPATH').innerText;
     const divTextAnswerGPT = document.querySelector('#divTextAnswerGPT');
-    const previousAnswer = divTextAnswerGPT.innerText.trim();
     divTextAnswerGPT.innerText = ' ';
     const divMiddleHeaderGpt = document.querySelector('#divMiddleHeaderGpt');
     divMiddleHeaderGpt.innerText = MESSAGES.REQUEST_IN_PROGRESS;
 
-    const result = await requestGPT(question, this.hint, previousAnswer);
+    const result = await requestGPT(question, this.hint, this.previousAnswers);
     divMiddleHeaderGpt.innerText = this.hint ? MESSAGES.HINT_RECEIVED : MESSAGES.RESPONSE_RECEIVED;
     divTextAnswerGPT.innerText = result;
+    this.previousAnswers.push(result);
     showRefresh();
 
     // Hint mode = cant copy
