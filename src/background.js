@@ -27,6 +27,7 @@ class BackgroundManager {
     this.autosubmitdelaymin = 2.5;
     this.autosubmitdelaymax = 8;
     this.typingdelay = 0;
+    this.apikey = "";
 
     this.retrieveSettings();
 
@@ -44,11 +45,13 @@ class BackgroundManager {
         (await getFromStorage("autoinsertanswer")) ?? this.autoinsertanswer;
       this.autosubmit = (await getFromStorage("autosubmit")) ?? this.autosubmit;
       this.autosubmitdelaymin =
-        (await getFromStorage("autosubmitdelaymin")) ?? this.autosubmitdelaymin;
+        parseFloat(await getFromStorage("autosubmitdelaymin")) ?? this.autosubmitdelaymin;
       this.autosubmitdelaymax =
-        (await getFromStorage("autosubmitdelaymax")) ?? this.autosubmitdelaymax;
+        parseFloat(await getFromStorage("autosubmitdelaymax")) ?? this.autosubmitdelaymax;
       this.typingdelay =
-        (await getFromStorage("typingdelay")) ?? this.typingdelay;
+        parseInt(await getFromStorage("typingdelay")) ?? this.typingdelay;
+      this.apikey = (await getFromStorage("apikey")) ?? this.apikey;
+
       Logger.log("🔧📦 ~ Settings retrieved from the storage:", {
         enabled: this.enabled,
         hint: this.hint,
@@ -57,6 +60,7 @@ class BackgroundManager {
         autosubmitdelaymin: this.autosubmitdelaymin,
         autosubmitdelaymax: this.autosubmitdelaymax,
         typingdelay: this.typingdelay,
+        apikey: this.apikey,
       });
     } catch (error) {
       Logger.log("🚨 ~ Error retrieving the settings from the storage:", error);
@@ -108,7 +112,11 @@ class BackgroundManager {
     // Save settings to storage
     if (request.message !== "status" && request.message !== "getOptions") {
       setInStorage(request.message, request.value);
-      Logger.log(`🔧🗃️💾 ~ Settings saved to the sorage: ${request.message, request.value}`);
+      Logger.log(
+        `🔧🗃️💾 ~ Settings saved to the sorage: ${
+          (request.message, request.value)
+        }`
+      );
     }
 
     switch (request.message) {
@@ -178,6 +186,14 @@ class BackgroundManager {
           value: request.value,
         });
         break;
+      case "apikey":
+        this.apikey = request.value;
+        Logger.log("🔑 ~ API key:", request.value);
+        this.send({
+          message: "apikey",
+          value: request.value,
+        });
+        break;
       case "status":
         sendResponse({
           enabled: this.enabled,
@@ -187,6 +203,7 @@ class BackgroundManager {
           autosubmitdelaymin: this.autosubmitdelaymin,
           autosubmitdelaymax: this.autosubmitdelaymax,
           typingdelay: this.typingdelay,
+          apikey: this.apikey,
         });
         break;
       case "getOptions":
@@ -198,6 +215,7 @@ class BackgroundManager {
           autosubmitdelaymin: this.autosubmitdelaymin,
           autosubmitdelaymax: this.autosubmitdelaymax,
           typingdelay: this.typingdelay,
+          apikey: this.apikey,
         });
         break;
     }

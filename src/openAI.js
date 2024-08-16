@@ -1,48 +1,62 @@
-import { MESSAGES, PROMPT_ANSWER, PROMPT_HINT, REQUEST_DELAY, MODEL } from './constants.js';
-import { OPENAI_API_KEY } from './secrets.js';
+import {
+  MESSAGES,
+  PROMPT_ANSWER,
+  PROMPT_HINT,
+  REQUEST_DELAY,
+  MODEL,
+} from "./constants.js";
 
-import Logger from './logger';
+import Logger from "./logger";
 
 let lastRequestTime = 0;
 
-export async function requestGPT(question, hint, previousAnswers = []) {
-  if (OPENAI_API_KEY === '') {
-    return MESSAGES.CODE_ERROR + 'No OpenAI API key provided.';
+export async function requestGPT(
+  question,
+  hint,
+  previousAnswers = [],
+  apikey = ""
+) {
+  if (apikey === "") {
+    return MESSAGES.CODE_ERROR + "No OpenAI API key provided.";
   }
 
   const currentTime = Date.now();
   // Check if the time since the last request is less than the REQUEST_DELAY
   if (currentTime - lastRequestTime < REQUEST_DELAY) {
     const waitTime = REQUEST_DELAY - (currentTime - lastRequestTime);
-    Logger.log(`⏳ ~ Rate limit in effect. Dropping request. Please wait ${waitTime}ms`);
+    Logger.log(
+      `⏳ ~ Rate limit in effect. Dropping request. Please wait ${waitTime}ms`
+    );
     return MESSAGES.RATE_LIMITED;
   }
 
   lastRequestTime = currentTime;
 
   try {
-    Logger.log(`🤖⬆️ ~ Sending the question to OpenAI: "${question}"\nHint mode: ${hint}`);
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
+    Logger.log(
+      `🤖⬆️ ~ Sending the question to OpenAI: "${question}"\nHint mode: ${hint}`
+    );
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apikey}`,
       },
       body: JSON.stringify({
         model: MODEL,
         messages: [
           {
-            role: 'system',
+            role: "system",
             content: hint ? PROMPT_HINT : PROMPT_ANSWER,
           },
           {
-            role: 'user',
+            role: "user",
             content: question,
           },
           ...(previousAnswers.length === 1
             ? [
                 {
-                  role: 'system',
+                  role: "system",
                   content: `La réponse "${previousAnswers[0]}" n'est pas valide, donne une autre réponse.`,
                 },
               ]
@@ -50,7 +64,7 @@ export async function requestGPT(question, hint, previousAnswers = []) {
           ...(previousAnswers.length > 1
             ? [
                 {
-                  role: 'system',
+                  role: "system",
                   content: `Les réponses "${previousAnswers.join(
                     '", "'
                   )}" ne sont pas valides, donne une autre réponse.`,
@@ -65,7 +79,9 @@ export async function requestGPT(question, hint, previousAnswers = []) {
 
     const data = await response.json();
     // this regex remove tab, new line etc from the answer but do not remove space
-    const answer = data.choices[0].message.content.trim().replace(/[^\S ]+/g, '');
+    const answer = data.choices[0].message.content
+      .trim()
+      .replace(/[^\S ]+/g, "");
     try {
       if (answer.length > 0) {
         Logger.log(`🤖⬇️ ~ OpenAI response: "${answer}"`);

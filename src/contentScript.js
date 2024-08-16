@@ -51,6 +51,7 @@ class ScriptManager {
     this.autosubmitdelaymin = 0;
     this.autosubmitdelaymax = 0;
     this.typingdelay = 0;
+    this.apikey = null;
 
     this.startTime = null; // Time of question
     this.previousAnswers = [];
@@ -66,10 +67,13 @@ class ScriptManager {
         this.autosubmit = response.autosubmit;
         this.autosubmitdelaymin = response.autosubmitdelaymin;
         this.autosubmitdelaymax = response.autosubmitdelaymax;
+        this.typingdelay = response.typingdelay;
+        this.apikey = response.apikey;
       }
 
       if (response.enabled) {
         Logger.log('🟢 ~ Extension enabled');
+        // settimeout pour attendre que la DOM se charge (surtout en custom game)
         setTimeout(() => this.start(), 500);
       }
     });
@@ -115,6 +119,10 @@ class ScriptManager {
           Logger.log(`⏱⌨️ ~ Changing typing delay: ${request.value}`);
           this.typingdelay = parseFloat(request.value);
           break;
+        case 'apikey':
+          Logger.log(`🔑 ~ Changing API key`);
+          this.apikey = request.value;
+          break;
       }
     });
   }
@@ -139,38 +147,20 @@ class ScriptManager {
     }
   }
 
-  async handleQuestionChange() {
+  async handleQuestionChange(startTimer = false) {
     const question = getXPathElement('QUESTION_XPATH').innerText;
-
-    this.startTime = Date.now();
-    startTimer();
-    const divTextAnswerGPT = document.querySelector('#divTextAnswerGPT');
-    divTextAnswerGPT.innerText = ' ';
-    const divMiddleHeaderGpt = document.querySelector('#divMiddleHeaderGpt');
-    divMiddleHeaderGpt.innerText = MESSAGES.REQUEST_IN_PROGRESS;
-
-    const result = await requestGPT(question, this.hint);
-    divMiddleHeaderGpt.innerText = this.hint ? MESSAGES.HINT_RECEIVED : MESSAGES.RESPONSE_RECEIVED;
-    divTextAnswerGPT.innerText = result;
-    this.previousAnswers = [result];
-    showRefresh();
-
-    // Hint mode = cant copy
-    this.canCopy = !this.hint;
-
-    if (this.autoinsertanswer) {
-      this.insertAnswerGPT();
+    
+    // Start timer if needed (do not refresh when you ask a new answer)
+    if (startTimer) {
+      this.startTime = Date.now();
+      startTimer();
     }
-  }
-
-  async handleRefresh() {
-    const question = getXPathElement('QUESTION_XPATH').innerText;
     const divTextAnswerGPT = document.querySelector('#divTextAnswerGPT');
     divTextAnswerGPT.innerText = ' ';
     const divMiddleHeaderGpt = document.querySelector('#divMiddleHeaderGpt');
     divMiddleHeaderGpt.innerText = MESSAGES.REQUEST_IN_PROGRESS;
 
-    const result = await requestGPT(question, this.hint, this.previousAnswers);
+    const result = await requestGPT(question, this.hint, this.previousAnswers, this.apikey);
     divMiddleHeaderGpt.innerText = this.hint ? MESSAGES.HINT_RECEIVED : MESSAGES.RESPONSE_RECEIVED;
     divTextAnswerGPT.innerText = result;
     this.previousAnswers.push(result);
@@ -197,8 +187,9 @@ class ScriptManager {
       if (!document.querySelector('#divGPT')) {
         createAnswerDiv();
         document.querySelector('#divTextAnswerGPT').addEventListener('click', () => this.insertAnswerGPT());
-        document.querySelector('#divFooterLeftGpt').addEventListener('click', () => this.handleRefresh());
+        document.querySelector('#divFooterLeftGpt').addEventListener('click', () => this.handleQuestionChange());
       }
+      this.previousAnswers = [];
       this.handleQuestionChange();
       return;
     }
@@ -209,8 +200,9 @@ class ScriptManager {
       if (!document.querySelector('#divGPT')) {
         createAnswerDiv();
         document.querySelector('#divTextAnswerGPT').addEventListener('click', () => this.insertAnswerGPT());
-        document.querySelector('#divFooterLeftGpt').addEventListener('click', () => this.handleRefresh());
+        document.querySelector('#divFooterLeftGpt').addEventListener('click', () => this.handleQuestionChange());
       }
+      this.previousAnswers = [];
       this.handleQuestionChange();
       return;
     }
@@ -228,9 +220,22 @@ class ScriptManager {
   insertAnswerGPT() {
     var answerGPT = document.querySelector('#divTextAnswerGPT').innerText.trim();
     const input = getXPathElement('INPUT_XPATH');
-    if (input && this.canCopy && answerGPT != '' && !Object.values(MESSAGES).includes(answerGPT)) {
+    if (
+      input &&
+      this.canCopy &&
+      answerGPT != '' &&
+      !Object.values(MESSAGES).some((message) => answerGPT.includes(message))
+    ) {
       input?.focus();
-      simulateTyping(input, answerGPT, this.typingdelay, this.autosubmit, this.startTime, this.autosubmitdelaymin, this.autosubmitdelaymax);
+      simulateTyping(
+        input,
+        answerGPT,
+        this.typingdelay,
+        this.autosubmit,
+        this.startTime,
+        this.autosubmitdelaymin,
+        this.autosubmitdelaymax
+      );
     }
   }
 

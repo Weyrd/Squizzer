@@ -33,6 +33,7 @@ a {
 
 #container {
   padding: 2rem;
+  height: 585px;
 }
 
 #options {
@@ -73,6 +74,24 @@ input[type='range'] {
   background: rgb(72, 72, 72);
   cursor: pointer;
   accent-color: #339c1e;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+
+input[type='password'] {
+  outline: none;
+  width: 100%;
+  padding: 0.2rem 0.3rem;
+  font-weight: bold;
+  border-radius: .3rem;
+}
+
+input[type='password']:focus {
+  outline: none;
 }
 
 hr {

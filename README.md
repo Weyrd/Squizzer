@@ -4,7 +4,7 @@
 
 ## Set up
 
-To get started with Squizzer, follow these steps:
+To build your own version of Squizzer, follow these steps:
 
 1. **Clone the repository**:
     ```bash
@@ -12,16 +12,11 @@ To get started with Squizzer, follow these steps:
     cd Squizzer
     npm install
     ```
-2. **Create `secrets.js`**:
-    - In the `src` folder, create a file named `secrets.js` with the following content:
-    ```js
-    export const OPENAI_API_KEY = 'your_openai_api_key';
-    ```
-3. **Run the app in development mode**:
+2. **Run the app in development mode**:
     ```bash
     npm run watch
     ```
-4. **Load the extension in Chrome**:
+3. **Load the extension in Chrome**:
     - Open `chrome://extensions` in Chrome.
     - Enable "Developer mode" by checking the checkbox in the top right corner.
     - Click on the "Load unpacked extension" button.
