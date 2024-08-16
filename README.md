@@ -29,8 +29,9 @@ To get started with Squizzer, follow these steps:
 
 ## Features
 
-![image](https://github.com/user-attachments/assets/324720e9-48e6-4fc9-b978-0d164de722f5)
-
+<p align="center">
+<img src="https://github.com/user-attachments/assets/324720e9-48e6-4fc9-b978-0d164de722f5">
+</p>
 
 Once the extension is installed, you can take advantage of the following features:
 
