@@ -17,7 +17,7 @@
     "default_title": "Squizzer",
     "default_popup": "popup.html"
   },
-  "permissions": ["tabs", "notifications"],
+  "permissions": ["tabs", "notifications", "storage"],
   "content_scripts": [
     {
       "matches": ["https://squiz.gg/*"],
