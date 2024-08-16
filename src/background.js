@@ -3,11 +3,14 @@ import Logger from './logger';
 
 class BackgroundManager {
   constructor() {
+    // Extension Settings
     this.enabled = false;
     this.hint = false;
     this.autoinsertanswer = false;
     this.autosubmit = false;
-    this.autosubmitdelay = 0;
+    this.autosubmitdelaymin = 2.5;
+    this.autosubmitdelaymax = 8;
+
     this.currentUrl = '';
     this.currentTabId = null;
 
@@ -99,20 +102,30 @@ class BackgroundManager {
           value: request.value,
         });
         break;
-      case 'autosubmitdelay':
-        this.autosubmitdelay = request.value;
-        Logger.log('🕒 ~ Changing autosubmit delay:', request.value);
+      case 'autosubmitdelaymin':
+        this.autosubmitdelaymin = request.value;
+        Logger.log('⏱🤏⬇️ ~ Changing minimum autosubmit delay:', request.value);
         this.send({
-          message: 'autosubmitdelay',
+          message: 'autosubmitdelaymin',
           value: request.value,
         });
+        break;
+      case 'autosubmitdelaymax':
+        this.autosubmitdelaymax = request.value;
+        Logger.log('⏱💪⬆️ ~ Changing maximum autosubmit delay:', request.value);
+        this.send({
+          message: 'autosubmitdelaymax',
+          value: request.value,
+        });
+        break;
       case 'status':
         sendResponse({
           enabled: this.enabled,
           hint: this.hint,
           autoinsertanswer: this.autoinsertanswer,
           autosubmit: this.autosubmit,
-          autosubmitdelay: this.autosubmitdelay,
+          autosubmitdelaymin: this.autosubmitdelaymin,
+          autosubmitdelaymax: this.autosubmitdelaymax,
         });
         break;
       case 'getOptions':
@@ -121,7 +134,8 @@ class BackgroundManager {
           hint: this.hint,
           autoinsertanswer: this.autoinsertanswer,
           autosubmit: this.autosubmit,
-          autosubmitdelay: this.autosubmitdelay,
+          autosubmitdelaymin: this.autosubmitdelaymin,
+          autosubmitdelaymax: this.autosubmitdelaymax,
         });
         break;
     }

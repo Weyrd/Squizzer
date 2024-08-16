@@ -16,8 +16,10 @@ chrome.runtime.sendMessage(
     document.getElementById('hint-input').checked = response.hint;
     document.getElementById('autoinsertanswer-input').checked = response.autoinsertanswer;
     document.getElementById('autosubmit-input').checked = response.autosubmit;
-    document.getElementById('autosubmitdelay-input').value = response.autosubmitdelay;
-    document.getElementById('autosubmitdelay-value').innerText = response.autosubmitdelay;
+    document.getElementById('autosubmitdelaymin-input').value = response.autosubmitdelaymin;
+    document.getElementById('autosubmitdelaymax-input').value = response.autosubmitdelaymax;
+    document.getElementById('autosubmitdelaymin-value').innerText = response.autosubmitdelaymin;
+    document.getElementById('autosubmitdelaymax-value').innerText = response.autosubmitdelaymax;
   }
 );
 
@@ -56,15 +58,40 @@ document.getElementById('autosubmit-input').addEventListener('change', function 
   });
 });
 
+const autosubmitdelayminInput = document.getElementById('autosubmitdelaymin-input');
+const autosubmitdelaymaxInput = document.getElementById('autosubmitdelaymax-input');
+const autosubmitdelayminValue = document.getElementById('autosubmitdelaymin-value');
+const autosubmitdelaymaxValue = document.getElementById('autosubmitdelaymax-value');
+
 // Update the displayed value as the user drags the slider
-document.getElementById('autosubmitdelay-input').addEventListener('input', function () {
-  document.getElementById('autosubmitdelay-value').innerText = this.value;
+autosubmitdelayminInput.addEventListener('input', function () {
+  if (parseFloat(autosubmitdelaymaxInput.value) < parseFloat(this.value)) {
+    autosubmitdelaymaxInput.value = this.value;
+    autosubmitdelaymaxValue.innerText = this.value;
+  }
+
+  autosubmitdelayminValue.innerText = this.value;
+});
+autosubmitdelaymaxInput.addEventListener('input', function () {
+  if (parseFloat(autosubmitdelayminInput.value) > parseFloat(this.value)) {
+    autosubmitdelayminInput.value = this.value;
+    autosubmitdelayminValue.innerText = this.value;
+  }
+
+  autosubmitdelaymaxValue.innerText = this.value;
 });
 
 // When the user releases the slider, send a message to the service worker to update the delay
-document.getElementById('autosubmitdelay-input').addEventListener('change', function () {
+const updateAutosubmitDelay = () => {
   chrome.runtime.sendMessage({
-    message: 'autosubmitdelay',
-    value: this.value,
+    message: 'autosubmitdelaymin',
+    value: autosubmitdelayminInput.value,
   });
-});
+  chrome.runtime.sendMessage({
+    message: 'autosubmitdelaymax',
+    value: autosubmitdelaymaxInput.value,
+  });
+};
+
+autosubmitdelayminInput.addEventListener('change', updateAutosubmitDelay);
+autosubmitdelaymaxInput.addEventListener('change', updateAutosubmitDelay);

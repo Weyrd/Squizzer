@@ -46,7 +46,8 @@ class ScriptManager {
     this.canCopy = true;
     this.autoinsertanswer = false;
     this.autosubmit = false;
-    this.autosubmitdelay = 0;
+    this.autosubmitdelaymin = 0;
+    this.autosubmitdelaymax = 0;
     this.startTime = null;
     this.previousAnswers = [];
 
@@ -59,7 +60,8 @@ class ScriptManager {
         this.hint = response.hint;
         this.autoinsertanswer = response.autoinsertanswer;
         this.autosubmit = response.autosubmit;
-        this.autosubmitdelay = response.autosubmitdelay;
+        this.autosubmitdelaymin = response.autosubmitdelaymin;
+        this.autosubmitdelaymax = response.autosubmitdelaymax;
       }
 
       if (response.enabled) {
@@ -97,9 +99,13 @@ class ScriptManager {
           Logger.log(`🚗 ~ Toggling autosubmit: ${request.value}`);
           this.autosubmit = request.value;
           break;
-        case 'autosubmitdelay':
-          Logger.log(`⏱ ~ Changing autosubmit delay: ${request.value}`);
-          this.autosubmitdelay = request.value;
+        case 'autosubmitdelaymin':
+          Logger.log(`⏱🤏⬇️ ~ Changing minimum autosubmit delay: ${request.value}`);
+          this.autosubmitdelaymin = parseFloat(request.value);
+          break;
+        case 'autosubmitdelaymax':
+          Logger.log(`⏱💪⬆️ ~ Changing maximum autosubmit delay: ${request.value}`);
+          this.autosubmitdelaymax = parseFloat(request.value);
           break;
       }
     });
@@ -216,7 +222,7 @@ class ScriptManager {
     const input = getXPathElement('INPUT_XPATH');
     if (input && this.canCopy && answerGPT != '' && !Object.values(MESSAGES).includes(answerGPT)) {
       input?.focus();
-      simulateTyping(input, answerGPT, 0, this.autosubmit, this.startTime, this.autosubmitdelay);
+      simulateTyping(input, answerGPT, 0, this.autosubmit, this.startTime, this.autosubmitdelaymin, this.autosubmitdelaymax);
     }
   }
 

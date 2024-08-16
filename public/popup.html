@@ -11,7 +11,7 @@
         <img src="icons/icon_48.png" />
         <h1>Squizzer</h1>
         <p>
-          v3.0 - by
+          v1.0.0 - by
           <a href="https://github.com/Weyrd" target="_blank">Weyrd</a> &
           <a href="https://github.com/Dyrudis" target="_blank">Dyrudis</a>
         </p>
@@ -173,9 +173,11 @@
             <span id="autosubmit-label">Soumettre la réponse automatiquement</span>
           </label>
           <label class="range">
-            <input type="range" id="autosubmitdelay-input" min="0" max="12.9" step=".1" value="0" />
+            <input type="range" id="autosubmitdelaymin-input" min="0" max="12.9" step=".1" value="0" />
+            <input type="range" id="autosubmitdelaymax-input" min="0" max="12.9" step=".1" value="0" />
             <span id="autosubmitdelay-label"
-              >Délai avant soumission automatique : <span id="autosubmitdelay-value">0</span>s</span
+              >Délai avant soumission automatique : entre <span id="autosubmitdelaymin-value">0</span>s et
+              <span id="autosubmitdelaymax-value">0</span>s</span
             >
           </label>
           <label class="switch">

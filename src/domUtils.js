@@ -93,7 +93,7 @@ export function startTimer() {
   }
 }
 
-export function simulateTyping(input, text, delay, autosubmit, startTime, autosubmitdelay) {
+export function simulateTyping(input, text, delay, autosubmit, startTime, autosubmitdelaymin, autosubmitdelaymax) {
   let index = 0;
 
   function typeCharacter() {
@@ -123,7 +123,11 @@ export function simulateTyping(input, text, delay, autosubmit, startTime, autosu
       index++;
       setTimeout(typeCharacter, delay); // Recursively type the next character
     } else if (autosubmit) {
+      const autosubmitdelay = Math.random() * (autosubmitdelaymax - autosubmitdelaymin) + autosubmitdelaymin;
+
+      Logger.log('🚗 ~ Autosubmitting after', autosubmitdelay, 'seconds');
       const remainingTime = autosubmitdelay * 1000 - (Date.now() - startTime) - 46;
+      Logger.log('⏱️ ~ Remaining time:', remainingTime, 'ms');
       setTimeout(() => {
         const event = new KeyboardEvent('keydown', {
           key: 'Enter',
