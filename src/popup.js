@@ -20,6 +20,8 @@ chrome.runtime.sendMessage(
     document.getElementById('autosubmitdelaymax-input').value = response.autosubmitdelaymax;
     document.getElementById('autosubmitdelaymin-value').innerText = response.autosubmitdelaymin;
     document.getElementById('autosubmitdelaymax-value').innerText = response.autosubmitdelaymax;
+    document.getElementById('typingdelay-input').value = response.typingdelay;
+    document.getElementById('typingdelay-value').innerText = response.typingdelay
   }
 );
 
@@ -95,3 +97,14 @@ const updateAutosubmitDelay = () => {
 
 autosubmitdelayminInput.addEventListener('change', updateAutosubmitDelay);
 autosubmitdelaymaxInput.addEventListener('change', updateAutosubmitDelay);
+
+document.getElementById('typingdelay-input').addEventListener('input', function () {
+  document.getElementById('typingdelay-value').innerText = this.value;
+});
+
+document.getElementById('typingdelay-input').addEventListener('change', function () {
+  chrome.runtime.sendMessage({
+    message: 'typingdelay',
+    value: this.value,
+  });
+});

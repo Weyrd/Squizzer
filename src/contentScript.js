@@ -42,13 +42,17 @@ class ScriptManager {
   constructor() {
     this.observerGame = null;
     this.observerGlobal = null;
+
+    // Extension options
     this.hint = false;
     this.canCopy = true;
     this.autoinsertanswer = false;
     this.autosubmit = false;
     this.autosubmitdelaymin = 0;
     this.autosubmitdelaymax = 0;
-    this.startTime = null;
+    this.typingdelay = 0;
+
+    this.startTime = null; // Time of question
     this.previousAnswers = [];
 
     this.registerListeners();
@@ -106,6 +110,10 @@ class ScriptManager {
         case 'autosubmitdelaymax':
           Logger.log(`⏱💪⬆️ ~ Changing maximum autosubmit delay: ${request.value}`);
           this.autosubmitdelaymax = parseFloat(request.value);
+          break;
+        case 'typingdelay':
+          Logger.log(`⏱⌨️ ~ Changing typing delay: ${request.value}`);
+          this.typingdelay = parseFloat(request.value);
           break;
       }
     });
@@ -222,7 +230,7 @@ class ScriptManager {
     const input = getXPathElement('INPUT_XPATH');
     if (input && this.canCopy && answerGPT != '' && !Object.values(MESSAGES).includes(answerGPT)) {
       input?.focus();
-      simulateTyping(input, answerGPT, 0, this.autosubmit, this.startTime, this.autosubmitdelaymin, this.autosubmitdelaymax);
+      simulateTyping(input, answerGPT, this.typingdelay, this.autosubmit, this.startTime, this.autosubmitdelaymin, this.autosubmitdelaymax);
     }
   }
 

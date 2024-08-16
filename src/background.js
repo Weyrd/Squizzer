@@ -10,6 +10,7 @@ class BackgroundManager {
     this.autosubmit = false;
     this.autosubmitdelaymin = 2.5;
     this.autosubmitdelaymax = 8;
+    this.typingdelay = 0;
 
     this.currentUrl = '';
     this.currentTabId = null;
@@ -118,6 +119,14 @@ class BackgroundManager {
           value: request.value,
         });
         break;
+      case 'typingdelay':
+        this.typingdelay = request.value;
+        Logger.log('⏱⌨️ ~ Changing typing delay:', request.value)
+        this.send({
+          message: 'typingdelay',
+          value: request.value,
+        });
+        break;
       case 'status':
         sendResponse({
           enabled: this.enabled,
@@ -126,6 +135,7 @@ class BackgroundManager {
           autosubmit: this.autosubmit,
           autosubmitdelaymin: this.autosubmitdelaymin,
           autosubmitdelaymax: this.autosubmitdelaymax,
+          typingdelay: this.typingdelay,
         });
         break;
       case 'getOptions':
@@ -136,6 +146,7 @@ class BackgroundManager {
           autosubmit: this.autosubmit,
           autosubmitdelaymin: this.autosubmitdelaymin,
           autosubmitdelaymax: this.autosubmitdelaymax,
+          typingdelay: this.typingdelay,
         });
         break;
     }

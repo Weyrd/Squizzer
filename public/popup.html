@@ -121,6 +121,7 @@
             </div>
             <span id="autoinsertanswer-label">Insérer la réponse automatiquement</span>
           </label>
+          <hr />
           <label class="switch">
             <input type="checkbox" id="autosubmit-input" />
             <div class="slider">
@@ -172,14 +173,24 @@
             </div>
             <span id="autosubmit-label">Soumettre la réponse automatiquement</span>
           </label>
-          <label class="range">
+          <div class="range">
             <input type="range" id="autosubmitdelaymin-input" min="0" max="12.9" step=".1" value="0" />
+          </div>
+          <div class="range">
             <input type="range" id="autosubmitdelaymax-input" min="0" max="12.9" step=".1" value="0" />
-            <span id="autosubmitdelay-label"
-              >Délai avant soumission automatique : entre <span id="autosubmitdelaymin-value">0</span>s et
-              <span id="autosubmitdelaymax-value">0</span>s</span
-            >
-          </label>
+          </div>
+          <span id="autosubmitdelay-label"
+            >Délai avant soumission automatique : entre <span id="autosubmitdelaymin-value">0</span>s et
+            <span id="autosubmitdelaymax-value">0</span>s</span
+          >
+          <hr />
+          <div class="range">
+            <input type="range" id="typingdelay-input" min="0" max="1000" step="10" value="0" />
+          </div>
+          <span id="autosubmitdelay-label"
+            >Délai entre chaque appui de touche : <span id="typingdelay-value">0</span>ms</span
+          >
+          <hr />
           <label class="switch">
             <input type="checkbox" id="hint-input" />
             <div class="slider">
