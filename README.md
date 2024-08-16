@@ -29,7 +29,8 @@ To get started with Squizzer, follow these steps:
 
 ## Features
 
-![image](https://github.com/user-attachments/assets/d95be7d0-03f2-4815-9d3d-bb1e62e41711)
+![image](https://github.com/user-attachments/assets/324720e9-48e6-4fc9-b978-0d164de722f5)
+
 
 Once the extension is installed, you can take advantage of the following features:
 
@@ -39,8 +40,10 @@ Once the extension is installed, you can take advantage of the following feature
 
 - **Automatically submit the answer**: When activated, the extension automatically submits (i.e., presses the enter key) the answer once it is inserted into the text input. This can be combined with the automatic insertion feature.
 
-- **Delay before automatic submission**: Set a delay after which the answer will be automatically submitted. If the delay is shorter than the response time of the OpenAI API, the answer will be submitted as soon as possible.  
+- **Delay before automatic submission**: Set a minimum and maximum delay after which the answer will be automatically submitted. If the delay is shorter than the response time of the OpenAI API, the answer will be submitted as soon as possible.  
 ⚠️ This may appear suspicious if you play against other people, as your answer time will be displayed to everyone and it is uncommon to answer any question in under 1.5 seconds.
+
+- **Delay between each key stroke**: Set a delay between each key stroke when inserting the answer into the text input. This can be used to simulate a more human-like typing speed.
 
 - **[Experimental] Only display a hint**: Instead of providing a direct answer, the extension can offer a hint to help you answer the question.  
 ⚠️ This feature is experimental and may not work as expected.
