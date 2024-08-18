@@ -1,4 +1,4 @@
-const DEBUG = true;
+const DEBUG = false;
 
 // Define a logging utility
 const Logger = {

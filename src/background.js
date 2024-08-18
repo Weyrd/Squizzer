@@ -1,5 +1,5 @@
-"use strict";
-import Logger from "./logger";
+'use strict';
+import Logger from './logger';
 
 function getFromStorage(key) {
   return new Promise((resolve, reject) => {
@@ -26,12 +26,12 @@ class BackgroundManager {
     this.autosubmit = false;
     this.autosubmitdelaymin = 2.5;
     this.autosubmitdelaymax = 8;
-    this.typingdelay = 0;
-    this.apikey = "";
+    this.typingdelay = 10;
+    this.apikey = '';
 
     this.retrieveSettings();
 
-    this.currentUrl = "";
+    this.currentUrl = '';
     this.currentTabId = null;
 
     this.registerListeners();
@@ -39,20 +39,23 @@ class BackgroundManager {
 
   async retrieveSettings() {
     try {
-      this.enabled = (await getFromStorage("enabled")) ?? this.enabled;
-      this.hint = (await getFromStorage("hint")) ?? this.hint;
-      this.autoinsertanswer =
-        (await getFromStorage("autoinsertanswer")) ?? this.autoinsertanswer;
-      this.autosubmit = (await getFromStorage("autosubmit")) ?? this.autosubmit;
-      this.autosubmitdelaymin =
-        parseFloat(await getFromStorage("autosubmitdelaymin")) ?? this.autosubmitdelaymin;
-      this.autosubmitdelaymax =
-        parseFloat(await getFromStorage("autosubmitdelaymax")) ?? this.autosubmitdelaymax;
-      this.typingdelay =
-        parseInt(await getFromStorage("typingdelay")) ?? this.typingdelay;
-      this.apikey = (await getFromStorage("apikey")) ?? this.apikey;
+      this.enabled = (await getFromStorage('enabled')) ?? this.enabled;
+      this.hint = (await getFromStorage('hint')) ?? this.hint;
+      this.autoinsertanswer = (await getFromStorage('autoinsertanswer')) ?? this.autoinsertanswer;
+      this.autosubmit = (await getFromStorage('autosubmit')) ?? this.autosubmit;
 
-      Logger.log("🔧📦 ~ Settings retrieved from the storage:", {
+      this.autosubmitdelaymin = await getFromStorage('autosubmitdelaymin') ?? this.autosubmitdelaymin;
+      this.autosubmitdelaymin = parseFloat(this.autosubmitdelaymin);
+
+      this.autosubmitdelaymax = await getFromStorage('autosubmitdelaymax') ?? this.autosubmitdelaymax;
+      this.autosubmitdelaymax = parseFloat(this.autosubmitdelaymax);
+
+      this.typingdelay = await getFromStorage('typingdelay') ?? this.typingdelay;
+      this.typingdelay = parseFloat(this.typingdelay);
+
+      this.apikey = (await getFromStorage('apikey')) ?? this.apikey;
+
+      Logger.log('🔧📦 ~ Settings retrieved from the storage:', {
         enabled: this.enabled,
         hint: this.hint,
         autoinsertanswer: this.autoinsertanswer,
@@ -63,7 +66,7 @@ class BackgroundManager {
         apikey: this.apikey,
       });
     } catch (error) {
-      Logger.log("🚨 ~ Error retrieving the settings from the storage:", error);
+      Logger.log('🚨 ~ Error retrieving the settings from the storage:', error);
     }
   }
 
@@ -80,7 +83,7 @@ class BackgroundManager {
 
   handleTabActivated(activeInfo) {
     chrome.tabs.get(activeInfo.tabId, (tab) => {
-      Logger.log("🌐 ~ Current url:", tab.url);
+      Logger.log('🌐 ~ Current url:', tab.url);
       this.currentUrl = tab.url;
       this.currentTabId = tab.id;
     });
@@ -88,20 +91,20 @@ class BackgroundManager {
 
   handleTabUpdated(tabId, changeInfo) {
     this.currentTabId = tabId;
-    if (changeInfo.url?.includes("squiz")) {
-      Logger.log("🔄🌐 ~ URL updated:", changeInfo.url);
+    if (changeInfo.url?.includes('squiz')) {
+      Logger.log('🔄🌐 ~ URL updated:', changeInfo.url);
       this.currentUrl = changeInfo.url;
-      if (this.enabled && this.currentUrl?.includes("room")) {
-        Logger.log("🚀 ~ Starting extension");
+      if (this.enabled && this.currentUrl?.includes('room')) {
+        Logger.log('🚀 ~ Starting extension');
         this.send({
-          message: "enabled",
+          message: 'enabled',
           value: true,
         });
       }
-      if (this.enabled && !this.currentUrl?.includes("room")) {
-        Logger.log("🏁 ~ Stopping extension");
+      if (this.enabled && !this.currentUrl?.includes('room')) {
+        Logger.log('🏁 ~ Stopping extension');
         this.send({
-          message: "enabled",
+          message: 'enabled',
           value: false,
         });
       }
@@ -110,91 +113,90 @@ class BackgroundManager {
 
   handleMessage(request, sender, sendResponse) {
     // Save settings to storage
-    if (request.message !== "status" && request.message !== "getOptions") {
+    if (request.message !== 'status' && request.message !== 'getOptions') {
       setInStorage(request.message, request.value);
       Logger.log(
-        `🔧🗃️💾 ~ Settings saved to the sorage: ${
-          (request.message, request.value)
+        `🔧🗃️💾 ~ Settings saved to the sorage: '${request.message}' -> '${request.value}'
         }`
       );
     }
 
     switch (request.message) {
-      case "enabled":
+      case 'enabled':
         this.enabled = request.value;
         if (request.value === true) {
-          if (this.currentUrl?.includes("room")) {
-            Logger.log("🚀 ~ Starting extension");
+          if (this.currentUrl?.includes('room')) {
+            Logger.log('🚀 ~ Starting extension');
             this.send({
-              message: "enabled",
+              message: 'enabled',
               value: true,
             });
           }
         } else if (request.value === false) {
-          Logger.log("🏁 ~ Stopping extension");
+          Logger.log('🏁 ~ Stopping extension');
           this.send({
-            message: "enabled",
+            message: 'enabled',
             value: false,
           });
         }
         break;
-      case "hint":
+      case 'hint':
         this.hint = request.value;
-        Logger.log("🔎 ~ Toggling hint:", request.value);
+        Logger.log('🔎 ~ Toggling hint:', request.value);
         this.send({
-          message: "hint",
+          message: 'hint',
           value: request.value,
         });
         break;
-      case "autoinsertanswer":
+      case 'autoinsertanswer':
         this.autoinsertanswer = request.value;
-        Logger.log("📝 ~ Toggling autoinsertanswer:", request.value);
+        Logger.log('📝 ~ Toggling autoinsertanswer:', request.value);
         this.send({
-          message: "autoinsertanswer",
+          message: 'autoinsertanswer',
           value: request.value,
         });
         break;
-      case "autosubmit":
+      case 'autosubmit':
         this.autosubmit = request.value;
-        Logger.log("🚗 ~ Toggling autosubmit:", request.value);
+        Logger.log('🚗 ~ Toggling autosubmit:', request.value);
         this.send({
-          message: "autosubmit",
+          message: 'autosubmit',
           value: request.value,
         });
         break;
-      case "autosubmitdelaymin":
+      case 'autosubmitdelaymin':
         this.autosubmitdelaymin = request.value;
-        Logger.log("⏱🤏⬇️ ~ Changing minimum autosubmit delay:", request.value);
+        Logger.log('⏱🤏⬇️ ~ Changing minimum autosubmit delay:', request.value);
         this.send({
-          message: "autosubmitdelaymin",
+          message: 'autosubmitdelaymin',
           value: request.value,
         });
         break;
-      case "autosubmitdelaymax":
+      case 'autosubmitdelaymax':
         this.autosubmitdelaymax = request.value;
-        Logger.log("⏱💪⬆️ ~ Changing maximum autosubmit delay:", request.value);
+        Logger.log('⏱💪⬆️ ~ Changing maximum autosubmit delay:', request.value);
         this.send({
-          message: "autosubmitdelaymax",
+          message: 'autosubmitdelaymax',
           value: request.value,
         });
         break;
-      case "typingdelay":
+      case 'typingdelay':
         this.typingdelay = request.value;
-        Logger.log("⏱⌨️ ~ Changing typing delay:", request.value);
+        Logger.log('⏱⌨️ ~ Changing typing delay:', request.value);
         this.send({
-          message: "typingdelay",
+          message: 'typingdelay',
           value: request.value,
         });
         break;
-      case "apikey":
+      case 'apikey':
         this.apikey = request.value;
-        Logger.log("🔑 ~ API key:", request.value);
+        Logger.log('🔑 ~ API key:', request.value);
         this.send({
-          message: "apikey",
+          message: 'apikey',
           value: request.value,
         });
         break;
-      case "status":
+      case 'status':
         sendResponse({
           enabled: this.enabled,
           hint: this.hint,
@@ -206,9 +208,9 @@ class BackgroundManager {
           apikey: this.apikey,
         });
         break;
-      case "getOptions":
+      case 'getOptions':
         sendResponse({
-          enabled: this.enabled && this.currentUrl?.includes("room"),
+          enabled: this.enabled && this.currentUrl?.includes('room'),
           hint: this.hint,
           autoinsertanswer: this.autoinsertanswer,
           autosubmit: this.autosubmit,

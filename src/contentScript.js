@@ -53,7 +53,7 @@ class ScriptManager {
     this.typingdelay = 0;
     this.apikey = null;
 
-    this.startTime = null; // Time of question
+    this.startTime = null; // Time when the question is displayed
     this.previousAnswers = [];
 
     this.registerListeners();
@@ -153,7 +153,6 @@ class ScriptManager {
     // Start timer if needed (do not refresh when you ask a new answer)
     if (startTimer) {
       this.startTime = Date.now();
-      startTimer();
     }
     const divTextAnswerGPT = document.querySelector('#divTextAnswerGPT');
     divTextAnswerGPT.innerText = ' ';
@@ -181,8 +180,8 @@ class ScriptManager {
     // Show the records if you want to understand the DOM changes
     //console.log(records);
 
-    if (observerConditions.isNewGame(records)) {
-      Logger.log('👀❓ ~ Question change detected (new game)');
+    if (observerConditions.isNewGame(records) || observerConditions.isNewQuestion(records)) {
+      Logger.log('👀❓ ~ Question change detected');
 
       if (!document.querySelector('#divGPT')) {
         createAnswerDiv();
@@ -190,22 +189,11 @@ class ScriptManager {
         document.querySelector('#divFooterLeftGpt').addEventListener('click', () => this.handleQuestionChange());
       }
       this.previousAnswers = [];
-      this.handleQuestionChange();
+      this.handleQuestionChange(true);
       return;
     }
 
-    if (observerConditions.isNewQuestion(records)) {
-      Logger.log('👀❓ ~ Question change detected (same game)');
 
-      if (!document.querySelector('#divGPT')) {
-        createAnswerDiv();
-        document.querySelector('#divTextAnswerGPT').addEventListener('click', () => this.insertAnswerGPT());
-        document.querySelector('#divFooterLeftGpt').addEventListener('click', () => this.handleQuestionChange());
-      }
-      this.previousAnswers = [];
-      this.handleQuestionChange();
-      return;
-    }
 
     if (observerConditions.isNewAnswer(records)) {
       Logger.log('👀📝 ~ Answer change detected');
@@ -227,6 +215,7 @@ class ScriptManager {
       !Object.values(MESSAGES).some((message) => answerGPT.includes(message))
     ) {
       input?.focus();
+      Logger.log(`~~~Start time is ${this.startTime}`);
       simulateTyping(
         input,
         answerGPT,

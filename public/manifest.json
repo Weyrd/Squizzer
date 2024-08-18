@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Squizzer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Squiz Helper Extension",
   "icons": {
     "16": "icons/icon_16.png",
@@ -17,17 +17,11 @@
     "default_title": "Squizzer",
     "default_popup": "popup.html"
   },
-  "permissions": ["tabs", "notifications", "storage"],
+  "permissions": ["tabs", "storage"],
   "content_scripts": [
     {
       "matches": ["https://squiz.gg/*"],
       "js": ["contentScript.js"]
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["refresh.svg"],
-      "matches": ["https://squiz.gg/*"]
     }
   ]
 }

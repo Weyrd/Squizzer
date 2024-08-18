@@ -1,6 +1,6 @@
 {
   "name": "squizzer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Squiz Helper Extension",
   "private": true,
   "scripts": {

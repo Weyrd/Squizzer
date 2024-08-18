@@ -49,11 +49,11 @@ export function createAnswerDiv() {
   divFooterGpt.style.justifyContent = "space-between";
   divFooterGpt.style.width = "100%";
 
-  const divFooterLeftGpt = document.createElement("img");
+  const divFooterLeftGpt = document.createElement("div");
   divFooterLeftGpt.id = "divFooterLeftGpt";
   divFooterLeftGpt.className =
     "css-901oao r-jwli3a r-6koalj r-7xmw5f r-1loqt21 ";
-  divFooterLeftGpt.src = chrome.runtime.getURL("refresh.svg");
+  divFooterLeftGpt.innerText = '↻'; // Other possible : 🔄♻️🔁🔃↻♺
   divFooterLeftGpt.style.width = "24px";
   divFooterLeftGpt.style.display = "none";
   divFooterGpt.appendChild(divFooterLeftGpt);
@@ -139,13 +139,14 @@ export function simulateTyping(
       setTimeout(typeCharacter, delay); // Recursively type the next character
     } else if (autosubmit) {
       const autosubmitdelay =
-        Math.random() * (autosubmitdelaymax - autosubmitdelaymin) +
-        autosubmitdelaymin;
-
+      Math.random() * (autosubmitdelaymax - autosubmitdelaymin) +
+      autosubmitdelaymin;
+      
       Logger.log("🚗 ~ Autosubmitting after", autosubmitdelay, "seconds");
-      const remainingTime =
-        autosubmitdelay * 1000 - (Date.now() - startTime) - 46;
+      const currentTime = Date.now();
+      const remainingTime = autosubmitdelay * 1000 - (currentTime - startTime) - 46;
       Logger.log("⏱️ ~ Remaining time:", remainingTime, "ms");
+
       setTimeout(() => {
         const event = new KeyboardEvent("keydown", {
           key: "Enter",
