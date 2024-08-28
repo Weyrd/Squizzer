@@ -197,6 +197,7 @@ class BackgroundManager {
         });
         break;
       case 'status':
+        // Send all the settings to the popup
         sendResponse({
           enabled: this.enabled,
           hint: this.hint,
@@ -209,6 +210,7 @@ class BackgroundManager {
         });
         break;
       case 'getOptions':
+        // Send all the settings to content script
         sendResponse({
           enabled: this.enabled && this.currentUrl?.includes('room'),
           hint: this.hint,
