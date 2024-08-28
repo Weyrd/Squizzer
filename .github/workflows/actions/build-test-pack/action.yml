@@ -24,6 +24,9 @@ runs:
       if: inputs.doNotPackZip != 'true'
       shell: bash
       run: npm run pack
+    
+    - name: Debug: List files
+        run: ls -R
 
     - name: Validate manifest.json of the extension
       uses: cardinalby/schema-validator-action@v1
