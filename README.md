@@ -1,4 +1,7 @@
 # <img src="public/icons/icon_48.png" width="45" align="left"> Squizzer
+[![Release](https://custom-icon-badges.demolab.com/github/v/tag/Weyrd/Squizzer?logo=tag&style=for-the-badge)](https://github.com/Weyrd/Squizzer/releases/latest)
+[![Stars](https://custom-icon-badges.demolab.com/github/stars/Weyrd/Squizzer?logo=star&style=for-the-badge)](https://github.com/Weyrd/Squizzer)
+[![Chrome store](https://custom-icon-badges.demolab.com/badge/Download-lightgreen.svg?logo=chrome&logoColor=black&style=for-the-badge)](https://chromewebstore.google.com/detail/squizzer/nbhknlgokdobneepbgmbfdgebnaglljc)
 
 **A Chrome extension to help you win some [sQuiz](https://sQuiz.gg) games 🥇**
 
@@ -32,6 +35,8 @@ Once the extension is installed, you can take advantage of the following feature
 
 - **Enable/Disable**: Toggle the extension on or off. When enabled, it observes the web page for any question created in the DOM. Detected questions are sent to the OpenAI API to determine the answer. The result is presented to you, and you can left-click on it to insert the answer into the text input. 
 
+- **Blur the answer**: If enabled, the answer will be blurred until you hover over it. This can be useful if you want to avoid accidentally revealing the answer.
+
 - **Automatically insert the answer**: If enabled, the extension automatically inserts the answer into the text input, allowing you to simply press enter to submit your answer.
 
 - **Automatically submit the answer**: When activated, the extension automatically submits (i.e., presses the enter key) the answer once it is inserted into the text input. This can be combined with the automatic insertion feature.
@@ -46,7 +51,7 @@ Once the extension is installed, you can take advantage of the following feature
 
 ## Install
 
-You can install the Squizzer **Chrome** extension [here]() <!-- TODO: Add Chrome extension link inside the parenthesis -->
+You can install the Squizzer **Chrome** extension [here](https://chromewebstore.google.com/detail/squizzer/nbhknlgokdobneepbgmbfdgebnaglljc)
 
 ---
 
