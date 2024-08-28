@@ -147,11 +147,12 @@ class ScriptManager {
     }
   }
 
-  async handleQuestionChange(startTimer = false) {
+  async handleQuestionChange(isRefresh = false) {
     const question = getXPathElement('QUESTION_XPATH').innerText;
-    
+
     // Start timer if needed (do not refresh when you ask a new answer)
-    if (startTimer) {
+    if (!isRefresh) {
+      startTimer();
       this.startTime = Date.now();
     }
     const divTextAnswerGPT = document.querySelector('#divTextAnswerGPT');
@@ -186,14 +187,12 @@ class ScriptManager {
       if (!document.querySelector('#divGPT')) {
         createAnswerDiv();
         document.querySelector('#divTextAnswerGPT').addEventListener('click', () => this.insertAnswerGPT());
-        document.querySelector('#divFooterLeftGpt').addEventListener('click', () => this.handleQuestionChange());
+        document.querySelector('#divFooterLeftGpt').addEventListener('click', () => this.handleQuestionChange(true));
       }
       this.previousAnswers = [];
-      this.handleQuestionChange(true);
+      this.handleQuestionChange();
       return;
     }
-
-
 
     if (observerConditions.isNewAnswer(records)) {
       Logger.log('👀📝 ~ Answer change detected');
