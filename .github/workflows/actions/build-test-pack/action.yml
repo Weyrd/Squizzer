@@ -13,13 +13,16 @@ runs:
       uses: actions/checkout@v2
 
     - name: Install dependencies
+      shell: bash
       run: npm install
 
     - name: Build extension
+      shell: bash
       run: npm run build
 
     - name: Pack extension
       if: inputs.doNotPackZip != 'true'
+      shell: bash
       run: npm run pack
 
     - name: Validate manifest.json of the extension
