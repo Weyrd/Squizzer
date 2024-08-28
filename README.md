@@ -28,7 +28,7 @@ To build your own version of Squizzer, follow these steps:
 ## Features
 
 <p align="center">
-<img src="https://github.com/user-attachments/assets/eaa76c79-4cbe-413e-a611-6c1be2461c7f">
+<img src="https://github.com/user-attachments/assets/8c2815fd-cf6f-43a5-8b74-0b9a52b6de64">
 </p>
 
 Once the extension is installed, you can take advantage of the following features:
