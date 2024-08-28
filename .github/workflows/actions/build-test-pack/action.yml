@@ -25,7 +25,7 @@ runs:
       shell: bash
       run: npm run pack
     
-     - name: List files in build directory
+    - name: List files in build directory
       run: |
         echo "Debug: Listing files in build directory"
         ls -la ${{ env.BUILD_DIR }}
