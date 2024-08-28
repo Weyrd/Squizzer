@@ -25,8 +25,11 @@ runs:
       shell: bash
       run: npm run pack
     
-    - name: Debug: List files
-        run: ls -R
+     - name: List files in build directory
+      run: |
+        echo "Debug: Listing files in build directory"
+        ls -la ${{ env.BUILD_DIR }}
+      shell: bash
 
     - name: Validate manifest.json of the extension
       uses: cardinalby/schema-validator-action@v1
