@@ -2,107 +2,95 @@
 
 import './popup.css';
 
-// When openning the popup, fetch all the settings from the background
-chrome.runtime.sendMessage(
-  {
-    message: 'status',
-  },
-  (response) => {
-    document.getElementById('enabled-input').checked = response.enabled;
-    document.getElementById('hint-input').checked = response.hint;
-    document.getElementById('autoinsertanswer-input').checked = response.autoinsertanswer;
-    document.getElementById('autosubmit-input').checked = response.autosubmit;
-    document.getElementById('autosubmitdelaymin-input').value = response.autosubmitdelaymin;
-    document.getElementById('autosubmitdelaymax-input').value = response.autosubmitdelaymax;
-    document.getElementById('autosubmitdelaymin-value').innerText = response.autosubmitdelaymin;
-    document.getElementById('autosubmitdelaymax-value').innerText = response.autosubmitdelaymax;
-    document.getElementById('typingdelay-input').value = response.typingdelay;
-    document.getElementById('typingdelay-value').innerText = response.typingdelay;
-
-    document.getElementById('apikey-input').value = response.apikey;
-  }
-);
-
-// When switching the button, send a message to the background to save the new value
-document.getElementById('enabled-input').addEventListener('change', function () {
-  chrome.runtime.sendMessage({
-    message: 'enabled',
-    value: this.checked,
-  });
-});
-
-document.getElementById('hint-input').addEventListener('change', function () {
-  chrome.runtime.sendMessage({
-    message: 'hint',
-    value: this.checked,
-  });
-});
-
-document.getElementById('autoinsertanswer-input').addEventListener('click', function () {
-  chrome.runtime.sendMessage({
-    message: 'autoinsertanswer',
-    value: this.checked,
-  });
-});
-
-document.getElementById('autosubmit-input').addEventListener('change', function () {
-  chrome.runtime.sendMessage({
-    message: 'autosubmit',
-    value: this.checked,
-  });
-});
-
-const autosubmitdelayminInput = document.getElementById('autosubmitdelaymin-input');
-const autosubmitdelaymaxInput = document.getElementById('autosubmitdelaymax-input');
-const autosubmitdelayminValue = document.getElementById('autosubmitdelaymin-value');
-const autosubmitdelaymaxValue = document.getElementById('autosubmitdelaymax-value');
-
-// Update the displayed value as the user drags the slider
-autosubmitdelayminInput.addEventListener('input', function () {
-  if (parseFloat(autosubmitdelaymaxInput.value) < parseFloat(this.value)) {
-    autosubmitdelaymaxInput.value = this.value;
-    autosubmitdelaymaxValue.innerText = this.value;
-  }
-
-  autosubmitdelayminValue.innerText = this.value;
-});
-autosubmitdelaymaxInput.addEventListener('input', function () {
-  if (parseFloat(autosubmitdelayminInput.value) > parseFloat(this.value)) {
-    autosubmitdelayminInput.value = this.value;
-    autosubmitdelayminValue.innerText = this.value;
-  }
-
-  autosubmitdelaymaxValue.innerText = this.value;
-});
-
-const updateAutosubmitDelay = () => {
-  chrome.runtime.sendMessage({
-    message: 'autosubmitdelaymin',
-    value: autosubmitdelayminInput.value,
-  });
-  chrome.runtime.sendMessage({
-    message: 'autosubmitdelaymax',
-    value: autosubmitdelaymaxInput.value,
-  });
+// Cache DOM elements
+const elements = {
+  enabledInput: document.getElementById('enabled-input'),
+  hintInput: document.getElementById('hint-input'),
+  autoinsertanswerInput: document.getElementById('autoinsertanswer-input'),
+  autosubmitInput: document.getElementById('autosubmit-input'),
+  autosubmitdelayminInput: document.getElementById('autosubmitdelaymin-input'),
+  autosubmitdelaymaxInput: document.getElementById('autosubmitdelaymax-input'),
+  autosubmitdelayminValue: document.getElementById('autosubmitdelaymin-value'),
+  autosubmitdelaymaxValue: document.getElementById('autosubmitdelaymax-value'),
+  typingdelayInput: document.getElementById('typingdelay-input'),
+  typingdelayValue: document.getElementById('typingdelay-value'),
+  apikeyInput: document.getElementById('apikey-input'),
+  noblurInput: document.getElementById('noblur-input'),
 };
 
-autosubmitdelayminInput.addEventListener('change', updateAutosubmitDelay);
-autosubmitdelaymaxInput.addEventListener('change', updateAutosubmitDelay);
-
-document.getElementById('typingdelay-input').addEventListener('input', function () {
-  document.getElementById('typingdelay-value').innerText = this.value;
+// Fetch settings from the background when opening the popup
+chrome.runtime.sendMessage({ message: 'status' }, (response) => {
+  elements.enabledInput.checked = response.enabled;
+  elements.hintInput.checked = response.hint;
+  elements.autoinsertanswerInput.checked = response.autoinsertanswer;
+  elements.autosubmitInput.checked = response.autosubmit;
+  elements.autosubmitdelayminInput.value = response.autosubmitdelaymin;
+  elements.autosubmitdelaymaxInput.value = response.autosubmitdelaymax;
+  elements.autosubmitdelayminValue.innerText = response.autosubmitdelaymin;
+  elements.autosubmitdelaymaxValue.innerText = response.autosubmitdelaymax;
+  elements.typingdelayInput.value = response.typingdelay;
+  elements.typingdelayValue.innerText = response.typingdelay;
+  elements.apikeyInput.value = response.apikey;
+  elements.noblurInput.checked = response.noblur;
 });
 
-document.getElementById('typingdelay-input').addEventListener('change', function () {
-  chrome.runtime.sendMessage({
-    message: 'typingdelay',
-    value: this.value,
-  });
+// Generic function to send a message
+const sendMessage = (message, value) => {
+  chrome.runtime.sendMessage({ message, value });
+};
+
+// Add event listeners using event delegation
+document.addEventListener('change', (event) => {
+  const { id, value, checked } = event.target;
+
+  switch (id) {
+    case 'enabled-input':
+      sendMessage('enabled', checked);
+      break;
+    case 'hint-input':
+      sendMessage('hint', checked);
+      break;
+    case 'autoinsertanswer-input':
+      sendMessage('autoinsertanswer', checked);
+      break;
+    case 'autosubmit-input':
+      sendMessage('autosubmit', checked);
+      break;
+    case 'autosubmitdelaymin-input':
+    case 'autosubmitdelaymax-input':
+      updateAutosubmitDelay();
+      break;
+    case 'typingdelay-input':
+      elements.typingdelayValue.innerText = value;
+      sendMessage('typingdelay', value);
+      break;
+    case 'apikey-input':
+      sendMessage('apikey', value);
+      break;
+    case 'noblur-input':
+      sendMessage('noblur', checked);
+      break;
+  }
 });
 
-document.getElementById('apikey-input').addEventListener('change', function () {
-  chrome.runtime.sendMessage({
-    message: 'apikey',
-    value: this.value,
-  });
+// Update the displayed value as the user drags the slider
+const updateAutosubmitDelay = () => {
+  const minVal = parseFloat(elements.autosubmitdelayminInput.value);
+  const maxVal = parseFloat(elements.autosubmitdelaymaxInput.value);
+
+  if (minVal > maxVal) {
+    elements.autosubmitdelaymaxInput.value = minVal;
+    elements.autosubmitdelaymaxValue.innerText = minVal;
+  }
+
+  elements.autosubmitdelayminValue.innerText = minVal;
+  elements.autosubmitdelaymaxValue.innerText = maxVal;
+
+  sendMessage('autosubmitdelaymin', minVal);
+  sendMessage('autosubmitdelaymax', maxVal);
+};
+
+// Add input event listener for immediate typing delay feedback
+elements.typingdelayInput.addEventListener('input', (event) => {
+  elements.typingdelayValue.innerText = event.target.value;
 });

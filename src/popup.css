@@ -57,6 +57,8 @@ label {
   align-items: center;
   gap: 0.75rem;
   text-align: left;
+  height: 24px;
+  cursor: pointer;
 }
 
 .range {

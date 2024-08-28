@@ -1,42 +1,16 @@
-'use strict';
+"use strict";
 
-import Logger from './logger';
-import { MESSAGES } from './constants';
-import { requestGPT } from './openAI';
-import { getXPathElement, createAnswerDiv, simulateTyping, startTimer, hideRefresh, showRefresh } from './domUtils';
-
-const observerConditions = {
-  // New question div
-  isNewGame: (records) =>
-    records.some(
-      (record) =>
-        record.type === 'childList' &&
-        record.target.className === 'css-1dbjc4n r-16y2uox' &&
-        record.addedNodes.length === 1 &&
-        record.addedNodes[0].className.includes('css-1dbjc4n') &&
-        record.addedNodes[0].className.includes('r-1dzdj1l') &&
-        record.addedNodes[0].className.includes('r-1pcd2l5')
-    ),
-  // Same question div, different question
-  isNewQuestion: (records) =>
-    records.some(
-      (record) =>
-        record.type === 'characterData' &&
-        record.target.parentNode.className.includes('css-901oao') &&
-        record.target.parentNode.className.includes('r-jwli3a') &&
-        record.target.parentNode.className.includes('r-1mkrsdo') &&
-        record.target.parentNode.className.includes('r-1x35g6')
-    ),
-  // New answer div
-  isNewAnswer: (records) =>
-    records.some(
-      (record) =>
-        record.type === 'childList' &&
-        record.target.className === 'css-1dbjc4n r-16y2uox' &&
-        record.addedNodes.length === 1 &&
-        record.addedNodes[0].className === 'css-1dbjc4n'
-    ),
-};
+import Logger from "./logger";
+import { MESSAGES } from "./constants";
+import { requestGPT } from "./openAI";
+import {
+  createAnswerDiv,
+  simulateTyping,
+  startTimer,
+  hideRefresh,
+  showRefresh,
+} from "./domUtils";
+import { getXPathElement, observerConditions } from "./xpathManager.js";
 
 class ScriptManager {
   constructor() {
@@ -44,14 +18,17 @@ class ScriptManager {
     this.observerGlobal = null;
 
     // Extension options
-    this.hint = false;
-    this.canCopy = true;
-    this.autoinsertanswer = false;
-    this.autosubmit = false;
-    this.autosubmitdelaymin = 0;
-    this.autosubmitdelaymax = 0;
-    this.typingdelay = 0;
-    this.apikey = null;
+    this.settings = {
+      hint: false,
+      canCopy: true,
+      autoinsertanswer: false,
+      autosubmit: false,
+      autosubmitdelaymin: 0,
+      autosubmitdelaymax: 0,
+      typingdelay: 0,
+      apikey: null,
+      noblur: false,
+    };
 
     this.startTime = null; // Time when the question is displayed
     this.previousAnswers = [];
@@ -59,72 +36,66 @@ class ScriptManager {
     this.registerListeners();
 
     // Send message to background script to get the state of the extension
-    chrome.runtime.sendMessage({ message: 'getOptions' }, (response) => {
+    chrome.runtime.sendMessage({ message: "getOptions" }, (response) => {
       if (response) {
-        Logger.log('📡 ~ Received status from background script:', response);
-        this.hint = response.hint;
-        this.autoinsertanswer = response.autoinsertanswer;
-        this.autosubmit = response.autosubmit;
-        this.autosubmitdelaymin = response.autosubmitdelaymin;
-        this.autosubmitdelaymax = response.autosubmitdelaymax;
-        this.typingdelay = response.typingdelay;
-        this.apikey = response.apikey;
-      }
+        Logger.log("📡 ~ Received status from background script:", response);
+        Object.assign(this.settings, response);
+        // Ensure the canCopy state is updated based on hint value
+        this.settings.canCopy = !this.settings.hint;
 
-      if (response.enabled) {
-        Logger.log('🟢 ~ Extension enabled');
-        // settimeout pour attendre que la DOM se charge (surtout en custom game)
-        setTimeout(() => this.start(), 500);
+        if (response.enabled) {
+          Logger.log("🟢 ~ Extension enabled");
+          setTimeout(() => this.start(), 500); // Wait for DOM to load (especially in custom games)
+        }
       }
     });
   }
 
   registerListeners() {
-    // Listen for messages from the background script
-    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      switch (request.message) {
-        case 'enabled':
-          if (request.value) {
-            Logger.log('🟢 ~ Extension enabled');
-            // settimeout pour attendre que la DOM se charge (surtout en custom game)
-            setTimeout(() => this.start(), 500);
-          } else {
-            Logger.log('🔴 ~ Extension disabled');
-            this.stop();
-            setTimeout(() => this.stop(), 500);
-          }
-          break;
-        case 'hint':
-          Logger.log(`🔎 ~ Toggling hint: ${request.value}`);
-          this.hint = request.value;
-          this.canCopy = !request.value;
-          break;
-        case 'autoinsertanswer':
-          Logger.log(`📝 ~ Toggling autoinsertanswer: ${request.value}`);
-          this.autoinsertanswer = request.value;
-          break;
-        case 'autosubmit':
-          Logger.log(`🚗 ~ Toggling autosubmit: ${request.value}`);
-          this.autosubmit = request.value;
-          break;
-        case 'autosubmitdelaymin':
-          Logger.log(`⏱🤏⬇️ ~ Changing minimum autosubmit delay: ${request.value}`);
-          this.autosubmitdelaymin = parseFloat(request.value);
-          break;
-        case 'autosubmitdelaymax':
-          Logger.log(`⏱💪⬆️ ~ Changing maximum autosubmit delay: ${request.value}`);
-          this.autosubmitdelaymax = parseFloat(request.value);
-          break;
-        case 'typingdelay':
-          Logger.log(`⏱⌨️ ~ Changing typing delay: ${request.value}`);
-          this.typingdelay = parseFloat(request.value);
-          break;
-        case 'apikey':
-          Logger.log(`🔑 ~ Changing API key`);
-          this.apikey = request.value;
-          break;
-      }
+    chrome.runtime.onMessage.addListener((request) => {
+      this.handleMessage(request);
     });
+  }
+
+  handleMessage({ message, value }) {
+    const emojiMap = {
+      hint: "🔎",
+      autoinsertanswer: "📝",
+      autosubmit: "🚗",
+      autosubmitdelaymin: "⏱🤏⬇️",
+      autosubmitdelaymax: "⏱💪⬆️",
+      typingdelay: "⏱⌨️",
+      apikey: "🔑",
+      noblur: "👓",
+      default: "⚙️",
+    };
+    Logger.log(
+      `${emojiMap[message] || emojiMap.default} ~ Setting updated :`,
+      message,
+      value
+    );
+    this.settings[message] =
+      typeof value === "number" ? parseFloat(value) : value;
+
+    switch (message) {
+      case "enabled":
+        if (value) {
+          setTimeout(() => this.start(), 500);
+        } else {
+          this.stop();
+        }
+        break;
+      case "hint":
+        this.settings.canCopy = !value;
+        break;
+      case "noblur":
+        if (document.querySelector("#divTextAnswerGPT")) {
+          document.querySelector("#divTextAnswerGPT").style.filter = value
+            ? "none"
+            : "";
+        }
+        break;
+    }
   }
 
   createObserver(targetElement) {
@@ -134,60 +105,79 @@ class ScriptManager {
       subtree: true,
       characterData: true,
     });
-    document.body.style.border = '1px solid green';
-    Logger.log('➕👀 ~ Observer created');
+    document.body.style.border = "1px solid green";
+    Logger.log("➕👀 ~ Observer created");
   }
 
   removeObserver() {
     if (this.observerGlobal) {
       this.observerGlobal.disconnect();
       this.observerGlobal = null;
-      document.body.style.border = '1px solid orange';
-      Logger.log('➖👀 ~ Observer removed');
+      document.body.style.border = "1px solid orange";
+      Logger.log("➖👀 ~ Observer removed");
     }
   }
 
   async handleQuestionChange(isRefresh = false) {
-    const question = getXPathElement('QUESTION_XPATH').innerText;
+    const question = getXPathElement("QUESTION_XPATH").innerText;
 
     // Start timer if needed (do not refresh when you ask a new answer)
     if (!isRefresh) {
       startTimer();
       this.startTime = Date.now();
     }
-    const divTextAnswerGPT = document.querySelector('#divTextAnswerGPT');
-    divTextAnswerGPT.innerText = ' ';
-    const divMiddleHeaderGpt = document.querySelector('#divMiddleHeaderGpt');
+    const divTextAnswerGPT = document.querySelector("#divTextAnswerGPT");
+    divTextAnswerGPT.innerText = " ";
+    const divMiddleHeaderGpt = document.querySelector("#divMiddleHeaderGpt");
     divMiddleHeaderGpt.innerText = MESSAGES.REQUEST_IN_PROGRESS;
 
-    const result = await requestGPT(question, this.hint, this.previousAnswers, this.apikey);
-    divMiddleHeaderGpt.innerText = this.hint ? MESSAGES.HINT_RECEIVED : MESSAGES.RESPONSE_RECEIVED;
+    const result = await requestGPT(
+      question,
+      this.settings.hint,
+      this.settings.previousAnswers,
+      this.settings.apikey
+    );
+    divMiddleHeaderGpt.innerText = this.settings.hint
+      ? MESSAGES.HINT_RECEIVED
+      : MESSAGES.RESPONSE_RECEIVED;
     divTextAnswerGPT.innerText = result;
     this.previousAnswers.push(result);
     showRefresh();
 
     // Hint mode = cant copy
-    this.canCopy = !this.hint;
+    this.settings.canCopy = !this.settings.hint;
 
-    if (this.autoinsertanswer) {
+    if (this.settings.autoinsertanswer) {
       this.insertAnswerGPT();
     }
+
+    divTextAnswerGPT.style.filter = this.settings.noblur ? "none" : "";
   }
 
   handleDOMChange(records) {
     // If the DOM change is not related to a question, we return
-    if (!records.some((record) => record.target?.innerText?.includes('Question'))) return;
+    if (
+      !records.some((record) => record.target?.innerText?.includes("Question"))
+    )
+      return;
 
     // Show the records if you want to understand the DOM changes
     //console.log(records);
 
-    if (observerConditions.isNewGame(records) || observerConditions.isNewQuestion(records)) {
-      Logger.log('👀❓ ~ Question change detected');
+    if (
+      observerConditions.isNewGame(records) ||
+      observerConditions.isNewQuestion(records)
+    ) {
+      Logger.log("👀❓ ~ Question change detected");
 
-      if (!document.querySelector('#divGPT')) {
+      if (!document.querySelector("#divGPT")) {
         createAnswerDiv();
-        document.querySelector('#divTextAnswerGPT').addEventListener('click', () => this.insertAnswerGPT());
-        document.querySelector('#divFooterLeftGpt').addEventListener('click', () => this.handleQuestionChange(true));
+        document
+          .querySelector("#divTextAnswerGPT")
+          .addEventListener("click", () => this.insertAnswerGPT());
+        document
+          .querySelector("#divFooterLeftGpt")
+          .addEventListener("click", () => this.handleQuestionChange(true));
       }
       this.previousAnswers = [];
       this.handleQuestionChange();
@@ -195,9 +185,9 @@ class ScriptManager {
     }
 
     if (observerConditions.isNewAnswer(records)) {
-      Logger.log('👀📝 ~ Answer change detected');
+      Logger.log("👀📝 ~ Answer change detected");
 
-      this.canCopy = false;
+      this.settings.canCopy = false;
 
       hideRefresh();
       return;
@@ -205,12 +195,14 @@ class ScriptManager {
   }
 
   insertAnswerGPT() {
-    var answerGPT = document.querySelector('#divTextAnswerGPT').innerText.trim();
-    const input = getXPathElement('INPUT_XPATH');
+    var answerGPT = document
+      .querySelector("#divTextAnswerGPT")
+      .innerText.trim();
+    const input = getXPathElement("INPUT_XPATH");
     if (
       input &&
-      this.canCopy &&
-      answerGPT != '' &&
+      this.settings.canCopy &&
+      answerGPT != "" &&
       !Object.values(MESSAGES).some((message) => answerGPT.includes(message))
     ) {
       input?.focus();
@@ -218,27 +210,27 @@ class ScriptManager {
       simulateTyping(
         input,
         answerGPT,
-        this.typingdelay,
-        this.autosubmit,
-        this.startTime,
-        this.autosubmitdelaymin,
-        this.autosubmitdelaymax
+        this.settings.typingdelay,
+        this.settings.autosubmit,
+        this.settings.startTime,
+        this.settings.autosubmitdelaymin,
+        this.settings.autosubmitdelaymax
       );
     }
   }
 
   start() {
-    document.body.style.boxSizing = 'border-box';
-    document.body.style.border = '1px solid orange';
+    document.body.style.boxSizing = "border-box";
+    document.body.style.border = "1px solid orange";
 
-    const globalDiv = getXPathElement('GLOBAL_XPATH');
+    const globalDiv = getXPathElement("GLOBAL_XPATH");
     this.createObserver(globalDiv);
   }
 
   stop() {
-    document.body.style.border = 'none';
+    document.body.style.border = "none";
     this.removeObserver();
-    const divGPT = document.querySelector('#divGPT');
+    const divGPT = document.querySelector("#divGPT");
     if (divGPT) divGPT.remove();
   }
 }

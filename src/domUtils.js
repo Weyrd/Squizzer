@@ -1,11 +1,7 @@
 import { MESSAGES, MODEL } from './constants.js';
 import Logger from './logger';
-import { xpathManager } from './xpathManager.js';
+import { getXPathElement } from './xpathManager.js';
 
-export function getXPathElement(xpathKey) {
-  const xpaths = xpathManager.getXpaths();
-  return xpathManager.getElementByXpath(xpaths[xpathKey]);
-}
 
 export function createAnswerDiv() {
   const divHeaderGpt = document.createElement('div');
@@ -37,6 +33,13 @@ export function createAnswerDiv() {
   divTextAnswerGPT.style.padding = '20px 0';
   divTextAnswerGPT.style.width = 'fit-content';
   divTextAnswerGPT.style.margin = '0 auto';
+  var css = '#divTextAnswerGPT { filter: blur(8px); } #divGPT:hover #divTextAnswerGPT { filter: blur(0px); }';
+  var style = document.createElement('style');
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
 
   const divFooterGpt = document.createElement('div');
   divFooterGpt.id = 'divFooterGpt';
@@ -70,6 +73,7 @@ export function createAnswerDiv() {
   divGPT.style.marginTop = '20px';
   divGPT.style.width = '100%';
   divGPT.style.marginBottom = '20px';
+  divGPT.appendChild(style);
 
   getXPathElement('APPEND_XPATH').appendChild(divGPT);
 

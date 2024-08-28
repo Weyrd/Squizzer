@@ -20,14 +20,17 @@ function setInStorage(key, value) {
 class BackgroundManager {
   constructor() {
     // Extension Settings
-    this.enabled = false;
-    this.hint = false;
-    this.autoinsertanswer = false;
-    this.autosubmit = false;
-    this.autosubmitdelaymin = 2.5;
-    this.autosubmitdelaymax = 8;
-    this.typingdelay = 10;
-    this.apikey = '';
+    this.settings = {
+      enabled: false,
+      hint: false,
+      autoinsertanswer: false,
+      autosubmit: false,
+      autosubmitdelaymin: 2.5,
+      autosubmitdelaymax: 8,
+      typingdelay: 10,
+      apikey: '',
+      noblur: false,
+    };
 
     this.retrieveSettings();
 
@@ -39,32 +42,17 @@ class BackgroundManager {
 
   async retrieveSettings() {
     try {
-      this.enabled = (await getFromStorage('enabled')) ?? this.enabled;
-      this.hint = (await getFromStorage('hint')) ?? this.hint;
-      this.autoinsertanswer = (await getFromStorage('autoinsertanswer')) ?? this.autoinsertanswer;
-      this.autosubmit = (await getFromStorage('autosubmit')) ?? this.autosubmit;
+      const keys = Object.keys(this.settings);
+      const values = await Promise.all(keys.map(getFromStorage));
 
-      this.autosubmitdelaymin = await getFromStorage('autosubmitdelaymin') ?? this.autosubmitdelaymin;
-      this.autosubmitdelaymin = parseFloat(this.autosubmitdelaymin);
-
-      this.autosubmitdelaymax = await getFromStorage('autosubmitdelaymax') ?? this.autosubmitdelaymax;
-      this.autosubmitdelaymax = parseFloat(this.autosubmitdelaymax);
-
-      this.typingdelay = await getFromStorage('typingdelay') ?? this.typingdelay;
-      this.typingdelay = parseFloat(this.typingdelay);
-
-      this.apikey = (await getFromStorage('apikey')) ?? this.apikey;
-
-      Logger.log('🔧📦 ~ Settings retrieved from the storage:', {
-        enabled: this.enabled,
-        hint: this.hint,
-        autoinsertanswer: this.autoinsertanswer,
-        autosubmit: this.autosubmit,
-        autosubmitdelaymin: this.autosubmitdelaymin,
-        autosubmitdelaymax: this.autosubmitdelaymax,
-        typingdelay: this.typingdelay,
-        apikey: this.apikey,
+      keys.forEach((key, index) => {
+        this.settings[key] = values[index] ?? this.settings[key];
+        if (['autosubmitdelaymin', 'autosubmitdelaymax', 'typingdelay'].includes(key)) {
+          this.settings[key] = parseFloat(this.settings[key]);
+        }
       });
+
+      Logger.log('🔧📦 ~ Settings retrieved from the storage:', this.settings);
     } catch (error) {
       Logger.log('🚨 ~ Error retrieving the settings from the storage:', error);
     }
@@ -94,14 +82,14 @@ class BackgroundManager {
     if (changeInfo.url?.includes('squiz')) {
       Logger.log('🔄🌐 ~ URL updated:', changeInfo.url);
       this.currentUrl = changeInfo.url;
-      if (this.enabled && this.currentUrl?.includes('room')) {
+      if (this.settings.enabled && this.currentUrl?.includes('room')) {
         Logger.log('🚀 ~ Starting extension');
         this.send({
           message: 'enabled',
           value: true,
         });
       }
-      if (this.enabled && !this.currentUrl?.includes('room')) {
+      if (this.settings.enabled && !this.currentUrl?.includes('room')) {
         Logger.log('🏁 ~ Stopping extension');
         this.send({
           message: 'enabled',
@@ -112,116 +100,25 @@ class BackgroundManager {
   }
 
   handleMessage(request, sender, sendResponse) {
-    // Save settings to storage
     if (request.message !== 'status' && request.message !== 'getOptions') {
       setInStorage(request.message, request.value);
-      Logger.log(
-        `🔧🗃️💾 ~ Settings saved to the sorage: '${request.message}' -> '${request.value}'
-        }`
-      );
+      Logger.log(`🔧🗃️💾 ~ Settings saved: '${request.message}' -> '${request.value}'`);
     }
 
-    switch (request.message) {
-      case 'enabled':
-        this.enabled = request.value;
-        if (request.value === true) {
-          if (this.currentUrl?.includes('room')) {
-            Logger.log('🚀 ~ Starting extension');
-            this.send({
-              message: 'enabled',
-              value: true,
-            });
-          }
-        } else if (request.value === false) {
-          Logger.log('🏁 ~ Stopping extension');
-          this.send({
-            message: 'enabled',
-            value: false,
-          });
-        }
-        break;
-      case 'hint':
-        this.hint = request.value;
-        Logger.log('🔎 ~ Toggling hint:', request.value);
-        this.send({
-          message: 'hint',
-          value: request.value,
-        });
-        break;
-      case 'autoinsertanswer':
-        this.autoinsertanswer = request.value;
-        Logger.log('📝 ~ Toggling autoinsertanswer:', request.value);
-        this.send({
-          message: 'autoinsertanswer',
-          value: request.value,
-        });
-        break;
-      case 'autosubmit':
-        this.autosubmit = request.value;
-        Logger.log('🚗 ~ Toggling autosubmit:', request.value);
-        this.send({
-          message: 'autosubmit',
-          value: request.value,
-        });
-        break;
-      case 'autosubmitdelaymin':
-        this.autosubmitdelaymin = request.value;
-        Logger.log('⏱🤏⬇️ ~ Changing minimum autosubmit delay:', request.value);
-        this.send({
-          message: 'autosubmitdelaymin',
-          value: request.value,
-        });
-        break;
-      case 'autosubmitdelaymax':
-        this.autosubmitdelaymax = request.value;
-        Logger.log('⏱💪⬆️ ~ Changing maximum autosubmit delay:', request.value);
-        this.send({
-          message: 'autosubmitdelaymax',
-          value: request.value,
-        });
-        break;
-      case 'typingdelay':
-        this.typingdelay = request.value;
-        Logger.log('⏱⌨️ ~ Changing typing delay:', request.value);
-        this.send({
-          message: 'typingdelay',
-          value: request.value,
-        });
-        break;
-      case 'apikey':
-        this.apikey = request.value;
-        Logger.log('🔑 ~ API key:', request.value);
-        this.send({
-          message: 'apikey',
-          value: request.value,
-        });
-        break;
-      case 'status':
-        // Send all the settings to the popup
-        sendResponse({
-          enabled: this.enabled,
-          hint: this.hint,
-          autoinsertanswer: this.autoinsertanswer,
-          autosubmit: this.autosubmit,
-          autosubmitdelaymin: this.autosubmitdelaymin,
-          autosubmitdelaymax: this.autosubmitdelaymax,
-          typingdelay: this.typingdelay,
-          apikey: this.apikey,
-        });
-        break;
-      case 'getOptions':
-        // Send all the settings to content script
-        sendResponse({
-          enabled: this.enabled && this.currentUrl?.includes('room'),
-          hint: this.hint,
-          autoinsertanswer: this.autoinsertanswer,
-          autosubmit: this.autosubmit,
-          autosubmitdelaymin: this.autosubmitdelaymin,
-          autosubmitdelaymax: this.autosubmitdelaymax,
-          typingdelay: this.typingdelay,
-          apikey: this.apikey,
-        });
-        break;
+    const settingsKeys = Object.keys(this.settings);
+
+    if (settingsKeys.includes(request.message)) {
+      this.settings[request.message] = request.value;
+      Logger.log(`🔧 ~ Toggling ${request.message}:`, request.value);
+      this.send({ message: request.message, value: request.value });
+    }
+
+    if (['status', 'getOptions'].includes(request.message)) {
+      const response = { ...this.settings };
+      if (request.message === 'getOptions') {
+        response.enabled = this.settings.enabled && this.currentUrl?.includes('room');
+      }
+      sendResponse(response);
     }
   }
 
