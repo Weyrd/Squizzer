@@ -1,10 +1,6 @@
-name: "Build, test and pack WebExtension"
-description: "Builds, tests, and packs extension dir using chrome-extension-cli"
+name: "Pack WebExtension"
+description: "Packs extension dir using chrome-extension-cli"
 
-inputs:
-  doNotPackZip:
-    description: 'Set `true` to omit pack step'
-    required: false
 
 runs:
   using: "composite"
@@ -16,14 +12,6 @@ runs:
       shell: bash
       run: npm install
 
-    - name: Build extension
-      shell: bash
-      run: npm run build
-
-    - name: Pack extension
-      if: inputs.doNotPackZip != 'true'
-      shell: bash
-      run: npm run pack
     
     - name: List files in build directory
       run: |

@@ -25,10 +25,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Build, test and pack to zip
+      - name: Pack to zip
         id: buildPack
         if: steps.getRelease.outcome != 'success'
-        uses: ./.github/workflows/actions/build-test-pack
+        uses: ./.github/workflows/actions/pack
 
       - name: Create Release
         id: createRelease
