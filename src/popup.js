@@ -77,18 +77,26 @@ document.addEventListener('change', (event) => {
 const updateAutosubmitDelay = () => {
   const minVal = parseFloat(elements.autosubmitdelayminInput.value);
   const maxVal = parseFloat(elements.autosubmitdelaymaxInput.value);
-
-  if (minVal > maxVal) {
-    elements.autosubmitdelaymaxInput.value = minVal;
-    elements.autosubmitdelaymaxValue.innerText = minVal;
-  }
-
-  elements.autosubmitdelayminValue.innerText = minVal;
-  elements.autosubmitdelaymaxValue.innerText = maxVal;
-
   sendMessage('autosubmitdelaymin', minVal);
   sendMessage('autosubmitdelaymax', maxVal);
 };
+
+elements.autosubmitdelayminInput.addEventListener('input', function () {
+  if (parseFloat(elements.autosubmitdelaymaxInput.value) < parseFloat(this.value)) {
+    elements.autosubmitdelaymaxInput.value = this.value;
+    elements.autosubmitdelaymaxValue.innerText = this.value;
+  }
+
+  elements.autosubmitdelayminValue.innerText = this.value;
+});
+elements.autosubmitdelaymaxInput.addEventListener('input', function () {
+  if (parseFloat(elements.autosubmitdelayminInput.value) > parseFloat(this.value)) {
+    elements.autosubmitdelayminInput.value = this.value;
+    elements.autosubmitdelayminValue.innerText = this.value;
+  }
+
+  elements.autosubmitdelaymaxValue.innerText = this.value;
+});
 
 // Add input event listener for immediate typing delay feedback
 elements.typingdelayInput.addEventListener('input', (event) => {

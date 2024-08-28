@@ -19,6 +19,7 @@ class ScriptManager {
 
     // Extension options
     this.settings = {
+      enabled: null,
       hint: false,
       canCopy: true,
       autoinsertanswer: false,
@@ -59,6 +60,7 @@ class ScriptManager {
 
   handleMessage({ message, value }) {
     const emojiMap = {
+      enabled: '🟢',
       hint: "🔎",
       autoinsertanswer: "📝",
       autosubmit: "🚗",
