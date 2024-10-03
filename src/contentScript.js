@@ -136,7 +136,7 @@ class ScriptManager {
     const result = await requestGPT(
       question,
       this.settings.hint,
-      this.settings.previousAnswers,
+      this.previousAnswers,
       this.settings.apikey
     );
     divMiddleHeaderGpt.innerText = this.settings.hint
@@ -214,7 +214,7 @@ class ScriptManager {
         answerGPT,
         this.settings.typingdelay,
         this.settings.autosubmit,
-        this.settings.startTime,
+        this.startTime,
         this.settings.autosubmitdelaymin,
         this.settings.autosubmitdelaymax
       );
